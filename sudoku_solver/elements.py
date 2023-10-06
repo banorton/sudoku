@@ -6,7 +6,21 @@ class Positional_Element:
     def __init__(self, pos: tuple, super_dim: tuple = (3, 3)):
         self.super_dim = super_dim
         self.pos = pos
-        self.num = self.pos_to_num(pos, super_dim)
+        self.num = self._pos_to_num()
+
+    def _pos_to_num(self) -> int:
+        row, col = self.pos[0], self.pos[1]
+        num = (row * self.super_dim[0]) + (col + 1)
+        return num
+
+    def _num_to_pos(self) -> tuple:
+        if self.num <= 0:
+            raise Exception("Invalid num for the given super_dim.")
+        row = floor((self.num - 1) / self.super_dim[1])
+        col = floor((self.num - 1) % self.super_dim[1])
+        assert col < self.super_dim[1]
+        assert row < self.super_dim[0]
+        return (row, col)
 
     @staticmethod
     def pos_to_num(pos: tuple, super_dim: tuple) -> int:
@@ -18,14 +32,14 @@ class Positional_Element:
     def num_to_pos(num: int, super_dim: tuple) -> tuple:
         if num <= 0:
             raise Exception("Invalid num for the given super_dim.")
-        row = floor((num-1) / super_dim[1])
-        col = floor((num-1) % super_dim[1])
+        row = floor((num - 1) / super_dim[1])
+        col = floor((num - 1) % super_dim[1])
         assert col < super_dim[1]
         assert row < super_dim[0]
         return (row, col)
 
     @staticmethod
-    def find_puzzle_pos(cell_pos, box_pos, box_dim):
+    def find_puzzle_pos(cell_pos: tuple, box_pos: tuple, box_dim: tuple) -> tuple:
         cell_row, cell_col = cell_pos
         box_row, box_col = box_pos
         puzzle_row = cell_row + box_row * box_dim[0]
@@ -33,15 +47,21 @@ class Positional_Element:
         return (puzzle_row, puzzle_col)
 
 
-class Puzzle():
+class Puzzle:
     def __init__(self, puzzle_dim: tuple = (3, 3), box_dim: tuple = (3, 3)):
         self.puzzle_dim = puzzle_dim
         self.box_dim = box_dim
+        self.cell_dim = (
+            self.box_dim[0] * self.puzzle_dim[0],
+            self.box_dim[1] * self.puzzle_dim[1],
+        )
         self.box_arr: list[list[Puzzle._Box]]
         self.cell_arr: list[list[int]]
         self.cell_arr_np: np.array()
+        self.notes_arr: list[list[set()]]
         self._gen_box_arr()
         self._gen_cell_arr()
+        self._gen_notes_arr()
 
     class _Cell(Positional_Element):
         def __init__(self, pos: tuple, box_pos: tuple, box_dim: tuple):
@@ -54,23 +74,32 @@ class Puzzle():
             self.puzzle_pos = self.find_puzzle_pos(pos, box_pos, box_dim)
 
         def __str__(self):
-            return str(self.pos)
+            return str(self.puzzle_pos)
+
+        def __repr__(self):
+            return str(self.puzzle_pos)
 
     class _Box(Positional_Element):
-        def __init__(self, pos: tuple = (0, 0), puzzle_dim: tuple = (3, 3), box_dim: tuple = (3, 3)):
+        def __init__(
+            self,
+            pos: tuple = (0, 0),
+            puzzle_dim: tuple = (3, 3),
+            box_dim: tuple = (3, 3),
+        ):
             self.cell_arr: list[list[Puzzle._Cell]]
             self.box_dim = box_dim
             self.pos: tuple
             self.num: int
             super().__init__(pos, puzzle_dim)
-            self._generate_cell_arr()
+            self._gen_cell_arr()
 
-        def _generate_cell_arr(self):
+        def _gen_cell_arr(self):
             self.cell_arr = [[] for _ in range(self.box_dim[0])]
             for row in range(self.box_dim[0]):
                 for col in range(self.box_dim[1]):
                     self.cell_arr[row].append(
-                        Puzzle._Cell((row, col), self.pos, self.box_dim))
+                        Puzzle._Cell((row, col), self.pos, self.box_dim)
+                    )
 
         def __str__(self):
             res = "\n"
@@ -87,13 +116,32 @@ class Puzzle():
                 self.box_arr[row].append(self._Box((row, col)))
 
     def _gen_cell_arr(self):
-        return
+        self.cell_arr = [[] for _ in range(self.cell_dim[0])]
+        for col_num in range(self.puzzle_dim[1]):
+            for row_num in range(self.puzzle_dim[0]):
+                curr_box = self.box_arr[row_num][col_num]
+                for i, box_row in enumerate(curr_box.cell_arr):
+                    offset = row_num * self.box_dim[0]
+                    for cell in box_row:
+                        self.cell_arr[offset + i].append(cell)
 
-    def get_row(self):
-        return
+    def _gen_notes_arr(self):
+        self.notes_arr = [[] for _ in range(self.cell_dim[0])]
+        for col_num in range(self.puzzle_dim[1]):
+            for row_num in range(self.puzzle_dim[0]):
+                curr_box = self.box_arr[row_num][col_num]
+                for i, box_row in enumerate(curr_box.cell_arr):
+                    offset = row_num * self.box_dim[0]
+                    for cell in box_row:
+                        self.notes_arr[offset + i].append(cell.notes)
 
-    def get_col(self):
-        return
+    def get_row(self, row_num):
+        return self.cell_arr[row_num - 1]
+
+    def get_col(self, col_num):
+        transpose_np = self.cell_arr_np.T
+        transpose_list = transpose_np.tolist()
+        return transpose_list[col_num - 1]
 
     def get_row_notes(self):
         return
@@ -102,19 +150,19 @@ class Puzzle():
         return
 
     # def __str__(self):
-        # for row_num in range(9):
-        #     row = self.get_row(row_num)
-        #     # Print horizontal seperators between boxes.
-        #     if (row_num % 3) == 0:
-        #         print(
-        #             "-------------------------------------------------------------------------------------------------", end="\n")
-        #         print("|\t\t\t\t|\t\t\t\t|\t\t\t\t|", end="\n")
+    # for row_num in range(9):
+    #     row = self.get_row(row_num)
+    #     # Print horizontal seperators between boxes.
+    #     if (row_num % 3) == 0:
+    #         print(
+    #             "-------------------------------------------------------------------------------------------------", end="\n")
+    #         print("|\t\t\t\t|\t\t\t\t|\t\t\t\t|", end="\n")
 
-        #     # Print row with vertical seperators between boxes.
-        #     for i in range(3):
-        #         print("|", end="\t")
-        #         print(str(row[i*3]) + "\t" + str(row[i*3+1]),
-        #               "\t" + str(row[i*3+2]), "\t", end="")
-        #     print("|", end="\n")
-        #     print("|\t\t\t\t|\t\t\t\t|\t\t\t\t|", end="\n")
-        # print("-------------------------------------------------------------------------------------------------", end="\n")
+    #     # Print row with vertical seperators between boxes.
+    #     for i in range(3):
+    #         print("|", end="\t")
+    #         print(str(row[i*3]) + "\t" + str(row[i*3+1]),
+    #               "\t" + str(row[i*3+2]), "\t", end="")
+    #     print("|", end="\n")
+    #     print("|\t\t\t\t|\t\t\t\t|\t\t\t\t|", end="\n")
+    # print("-------------------------------------------------------------------------------------------------", end="\n")
