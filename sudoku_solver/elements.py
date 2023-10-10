@@ -58,7 +58,7 @@ class Positional_Element:
 class Puzzle:
     def __init__(
         self,
-        vals: np.ndarray = None,
+        vals=None,
         puzzle_dim: tuple = (3, 3),
         box_dim: tuple = (3, 3),
     ):
@@ -76,7 +76,7 @@ class Puzzle:
         self._gen_box_arr()
         self._gen_cell_arr()
         self._gen_notes_arr()
-        if vals != None:
+        if not (vals is None):
             self._assign_vals(vals)
 
     class _Cell(Positional_Element):
@@ -152,17 +152,23 @@ class Puzzle:
                     for cell in box_row:
                         self.notes_arr[offset + i].append(cell.notes)
 
-    def _assign_vals(self, vals: np.ndarray):
-        return
+    def _assign_vals(self, vals):
+        if isinstance(vals, np.ndarray):
+            vals = np.array(vals)
 
-    def udpate_cell(self, pos: tuple, val: int):
+        vals = np.reshape(vals, self.cell_dim)
+        num_row, num_col = self.cell_dim
+        for m in range(num_row):
+            for n in range(num_col):
+                self.update_cell((m, n), vals[m, n])
+
+    def update_cell(self, pos: tuple, val: int):
         self.cell_arr[pos[0]][pos[1]] = val
         self.cell_arr_np[pos[0], pos[1]] = val
         box_pos, in_box_pos = Positional_Element.puzzle_pos_to_box_pos(
             pos, self.box_dim
         )
         box = self.box_arr[box_pos[0]][box_pos[1]]
-        print(in_box_pos)
         box.cell_arr[in_box_pos[0]][in_box_pos[1]] = val
 
     def get_row_vals(self, row_num):
@@ -224,9 +230,9 @@ class Puzzle:
             # Print row with vertical seperators between boxes.
             for i in range(self.box_dim[1]):
                 puzzle_str += "|\t"
-                puzzle_str += str(row[i * 3]) + "\t"
-                puzzle_str += str(row[i * 3 + 1]) + "\t"
-                puzzle_str += str(row[i * 3 + 2]) + "\t"
+                puzzle_str += str(row[i * self.box_dim[1]]) + "\t"
+                puzzle_str += str(row[i * self.box_dim[1] + 1]) + "\t"
+                puzzle_str += str(row[i * self.box_dim[1] + 2]) + "\t"
 
             puzzle_str += "|\n"
             puzzle_str += "|\t\t\t\t|\t\t\t\t|\t\t\t\t|\n"
