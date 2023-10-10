@@ -143,10 +143,15 @@ class Puzzle:
         transpose_list = transpose_np.tolist()
         return transpose_list[col_num - 1]
 
-    def get_row_notes(self):
-        return
+    def get_row_notes(self, row_num):
+        return self.notes_arr[row_num - 1]
 
-    def get_col_notes(self):
+    def get_col_notes(self, col_num):
+        transpose_np = self.cell_arr_np.T
+        transpose_list = transpose_np.tolist()
+        return transpose_list[col_num - 1]
+
+    def check_validity():
         return
 
     # def __str__(self):
