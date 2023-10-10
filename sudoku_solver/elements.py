@@ -162,43 +162,48 @@ class Puzzle:
     def get_row_notes(self, row_num):
         return self.notes_arr[row_num - 1]
 
-    # def get_col_notes(self, col_num):
-    #     return transpose_list[col_num - 1]
+    def get_col_notes(self, col_num):
+        transpose = list(map(list, zip(*self.notes_arr)))
+        return transpose[col_num - 1]
 
-    # def get_box_notes(self, box_num: int = None, box_pos: tuple = None):
-    #     if box_num == None and box_pos == None:
-    #         return
-    #     elif box_num != None and box_pos == None:
-    #         box_pos = Positional_Element.num_to_pos(box_num, self.puzzle_dim)
-    #     elif box_num == None and box_pos != None:
-    #         pass
-    #     elif box_num != None and box_pos != None:
-    #         assert box_num == Positional_Element.num_to_pos(box_num, self.puzzle_dim)
+    def get_box_notes(self, box_num: int = None, box_pos: tuple = None):
+        if box_num == None and box_pos == None:
+            return
+        elif box_num != None and box_pos == None:
+            box_pos = Positional_Element.num_to_pos(box_num, self.puzzle_dim)
+        elif box_num == None and box_pos != None:
+            pass
+        elif box_num != None and box_pos != None:
+            assert box_num == Positional_Element.num_to_pos(box_num, self.puzzle_dim)
 
-    #     box = self.box_arr[box_pos[0]][box_pos[1]]
-    #     notes = list()
-    #     for row in box:
-    #         for cell in row:
-    #             vals.append(cell.val)
-    #     return vals
+        box = self.box_arr[box_pos[0]][box_pos[1]]
+        notes = list()
+        for row in box.cell_arr:
+            for cell in row:
+                notes.append(cell.notes)
+        return notes
 
     def check_validity():
         return
 
-    # def __str__(self):
-    # for row_num in range(9):
-    #     row = self.get_row(row_num)
-    #     # Print horizontal seperators between boxes.
-    #     if (row_num % 3) == 0:
-    #         print(
-    #             "-------------------------------------------------------------------------------------------------", end="\n")
-    #         print("|\t\t\t\t|\t\t\t\t|\t\t\t\t|", end="\n")
+    def __str__(self):
+        puzzle_str = ""
+        for row_num in range(self.cell_dim[0]):
+            row = self.get_row_vals(row_num)
+            # Print horizontal seperators between boxes.
+            if (row_num % 3) == 0:
+                puzzle_str += "-------------------------------------------------------------------------------------------------\n"
+                puzzle_str += "|\t\t\t\t|\t\t\t\t|\t\t\t\t|\n"
 
-    #     # Print row with vertical seperators between boxes.
-    #     for i in range(3):
-    #         print("|", end="\t")
-    #         print(str(row[i*3]) + "\t" + str(row[i*3+1]),
-    #               "\t" + str(row[i*3+2]), "\t", end="")
-    #     print("|", end="\n")
-    #     print("|\t\t\t\t|\t\t\t\t|\t\t\t\t|", end="\n")
-    # print("-------------------------------------------------------------------------------------------------", end="\n")
+            # Print row with vertical seperators between boxes.
+            for i in range(3):
+                puzzle_str += "|\t"
+                puzzle_str += str(row[i * 3]) + "\t"
+                puzzle_str += str(row[i * 3 + 1]) + "\t"
+                puzzle_str += str(row[i * 3 + 2]) + "\t"
+
+            puzzle_str += "|\n"
+            puzzle_str += "|\t\t\t\t|\t\t\t\t|\t\t\t\t|\n"
+
+        puzzle_str += "-------------------------------------------------------------------------------------------------\n"
+        return puzzle_str
