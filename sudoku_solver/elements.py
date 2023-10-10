@@ -50,10 +50,10 @@ class Positional_Element:
 class Puzzle:
     def __init__(self, puzzle_dim: tuple = (3, 3), box_dim: tuple = (3, 3)):
         self.puzzle_dim = puzzle_dim
-        self.box_dim = box_dim
+        self.dim = box_dim
         self.cell_dim = (
-            self.box_dim[0] * self.puzzle_dim[0],
-            self.box_dim[1] * self.puzzle_dim[1],
+            self.dim[0] * self.puzzle_dim[0],
+            self.dim[1] * self.puzzle_dim[1],
         )
         self.box_arr: list[list[Puzzle._Box]]
         self.cell_arr: list[list[int]]
@@ -84,27 +84,27 @@ class Puzzle:
             self,
             pos: tuple = (0, 0),
             puzzle_dim: tuple = (3, 3),
-            box_dim: tuple = (3, 3),
+            dim: tuple = (3, 3),
         ):
             self.cell_arr: list[list[Puzzle._Cell]]
-            self.box_dim = box_dim
+            self.dim = dim
             self.pos: tuple
             self.num: int
             super().__init__(pos, puzzle_dim)
             self._gen_cell_arr()
 
         def _gen_cell_arr(self):
-            self.cell_arr = [[] for _ in range(self.box_dim[0])]
-            for row in range(self.box_dim[0]):
-                for col in range(self.box_dim[1]):
+            self.cell_arr = [[] for _ in range(self.dim[0])]
+            for row in range(self.dim[0]):
+                for col in range(self.dim[1]):
                     self.cell_arr[row].append(
-                        Puzzle._Cell((row, col), self.pos, self.box_dim)
+                        Puzzle._Cell((row, col), self.pos, self.dim)
                     )
 
         def __str__(self):
             res = "\n"
-            for row in range(self.box_dim[0]):
-                for col in range(self.box_dim[1]):
+            for row in range(self.dim[0]):
+                for col in range(self.dim[1]):
                     res += str(self.cell_arr[row][col].val) + " "
                 res += "\n"
             return res
@@ -117,11 +117,12 @@ class Puzzle:
 
     def _gen_cell_arr(self):
         self.cell_arr = [[] for _ in range(self.cell_dim[0])]
+        self.cell_arr_np = np.zeros(self.cell_dim, int)
         for col_num in range(self.puzzle_dim[1]):
             for row_num in range(self.puzzle_dim[0]):
                 curr_box = self.box_arr[row_num][col_num]
                 for i, box_row in enumerate(curr_box.cell_arr):
-                    offset = row_num * self.box_dim[0]
+                    offset = row_num * self.dim[0]
                     for cell in box_row:
                         self.cell_arr[offset + i].append(cell)
 
@@ -131,25 +132,55 @@ class Puzzle:
             for row_num in range(self.puzzle_dim[0]):
                 curr_box = self.box_arr[row_num][col_num]
                 for i, box_row in enumerate(curr_box.cell_arr):
-                    offset = row_num * self.box_dim[0]
+                    offset = row_num * self.dim[0]
                     for cell in box_row:
                         self.notes_arr[offset + i].append(cell.notes)
 
-    def get_row(self, row_num):
-        return self.cell_arr[row_num - 1]
+    def get_row_vals(self, row_num):
+        return self.cell_arr_np[row_num - 1]
 
-    def get_col(self, col_num):
-        transpose_np = self.cell_arr_np.T
-        transpose_list = transpose_np.tolist()
-        return transpose_list[col_num - 1]
+    def get_col_vals(self, col_num):
+        return self.cell_arr_np.T[col_num - 1]
+
+    def get_box_vals(self, box_pos: tuple = None, box_num: int = None):
+        if box_num == None and box_pos == None:
+            return
+        elif box_num != None and box_pos == None:
+            box_pos = Positional_Element.num_to_pos(box_num, self.puzzle_dim)
+        elif box_num == None and box_pos != None:
+            pass
+        elif box_num != None and box_pos != None:
+            assert box_num == Positional_Element.num_to_pos(box_num, self.puzzle_dim)
+
+        box = self.box_arr[box_pos[0]][box_pos[1]]
+        vals = np.zeros(box.dim, int)
+        for m, row in enumerate(box.cell_arr):
+            for n, cell in enumerate(row):
+                vals[m, n] = cell.val
+        return vals
 
     def get_row_notes(self, row_num):
         return self.notes_arr[row_num - 1]
 
-    def get_col_notes(self, col_num):
-        transpose_np = self.cell_arr_np.T
-        transpose_list = transpose_np.tolist()
-        return transpose_list[col_num - 1]
+    # def get_col_notes(self, col_num):
+    #     return transpose_list[col_num - 1]
+
+    # def get_box_notes(self, box_num: int = None, box_pos: tuple = None):
+    #     if box_num == None and box_pos == None:
+    #         return
+    #     elif box_num != None and box_pos == None:
+    #         box_pos = Positional_Element.num_to_pos(box_num, self.puzzle_dim)
+    #     elif box_num == None and box_pos != None:
+    #         pass
+    #     elif box_num != None and box_pos != None:
+    #         assert box_num == Positional_Element.num_to_pos(box_num, self.puzzle_dim)
+
+    #     box = self.box_arr[box_pos[0]][box_pos[1]]
+    #     notes = list()
+    #     for row in box:
+    #         for cell in row:
+    #             vals.append(cell.val)
+    #     return vals
 
     def check_validity():
         return
