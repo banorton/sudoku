@@ -1,5 +1,17 @@
 import numpy as np
 from math import floor, ceil
+from itertools import chain
+
+
+class Array:
+    def __init__(self, arr):
+        self.arr = arr
+        self.T = list(map(list, (zip(*arr))))
+        self.np: np.ndarray
+        self.dim = (len(arr), len(arr[0]))
+
+    def flatten(self):
+        return list(chain.from_iterable(self.cell_arr))
 
 
 class Positional_Element:
@@ -69,7 +81,7 @@ class Puzzle:
             self.box_dim[1] * self.puzzle_dim[1],
         )
         self.cells_unsolved = self.cell_dim[0] * self.cell_dim[1]
-        self.box_arr: list[list[Puzzle._Box]]
+        self.box_arr: Array_Like
         self.cell_arr: list[list[int]]
         self.cell_arr_np: np.ndarray
         self.notes_arr: list[list[set()]]
@@ -126,27 +138,29 @@ class Puzzle:
             return res
 
     def _gen_box_arr(self):
-        self.box_arr = [[] for _ in range(self.puzzle_dim[0])]
+        arr = [[] for _ in range(self.puzzle_dim[0])]
         for row in range(self.puzzle_dim[0]):
             for col in range(self.puzzle_dim[1]):
-                self.box_arr[row].append(self._Box((row, col)))
+                arr[row].append(self._Box((row, col)))
+        self.box_arr = Array(arr)
 
     def _gen_cell_arr(self):
         self.cell_arr = [[] for _ in range(self.cell_dim[0])]
         self.cell_arr_np = np.zeros(self.cell_dim, int)
         for col_num in range(self.puzzle_dim[1]):
             for row_num in range(self.puzzle_dim[0]):
-                curr_box = self.box_arr[row_num][col_num]
+                curr_box = self.box_arr.arr[row_num][col_num]
                 for i, box_row in enumerate(curr_box.cell_arr):
                     offset = row_num * self.box_dim[0]
                     for cell in box_row:
                         self.cell_arr[offset + i].append(cell)
+        self.box_arr = Array(arr)
 
     def _gen_notes_arr(self):
         self.notes_arr = [[] for _ in range(self.cell_dim[0])]
         for col_num in range(self.puzzle_dim[1]):
             for row_num in range(self.puzzle_dim[0]):
-                curr_box = self.box_arr[row_num][col_num]
+                curr_box = self.box_arr.arr[row_num][col_num]
                 for i, box_row in enumerate(curr_box.cell_arr):
                     offset = row_num * self.box_dim[0]
                     for cell in box_row:
@@ -168,7 +182,7 @@ class Puzzle:
         box_pos, in_box_pos = Positional_Element.puzzle_pos_to_box_pos(
             pos, self.box_dim
         )
-        box = self.box_arr[box_pos[0]][box_pos[1]]
+        box = self.box_arr.arr[box_pos[0]][box_pos[1]]
         box.cell_arr[in_box_pos[0]][in_box_pos[1]] = val
 
     def get_row_vals(self, row_num):
@@ -187,7 +201,7 @@ class Puzzle:
         elif box_num != None and box_pos != None:
             assert box_num == Positional_Element.num_to_pos(box_num, self.puzzle_dim)
 
-        box = self.box_arr[box_pos[0]][box_pos[1]]
+        box = self.box_arr.arr[box_pos[0]][box_pos[1]]
         vals = np.zeros(box.dim, int)
         for m, row in enumerate(box.cell_arr):
             for n, cell in enumerate(row):
@@ -211,7 +225,7 @@ class Puzzle:
         elif box_num != None and box_pos != None:
             assert box_num == Positional_Element.num_to_pos(box_num, self.puzzle_dim)
 
-        box = self.box_arr[box_pos[0]][box_pos[1]]
+        box = self.box_arr.arr[box_pos[0]][box_pos[1]]
         notes = list()
         for row in box.cell_arr:
             for cell in row:
