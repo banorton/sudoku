@@ -197,12 +197,6 @@ class Puzzle:
         box = self.boxes.arr[box_pos[0]][box_pos[1]]
         box.cells.arr[in_box_pos[0]][in_box_pos[1]] = val
 
-    def get_row_vals(self, row_num):
-        return self.cells.np[row_num]
-
-    def get_col_vals(self, col_num):
-        return self.cells.np.T[col_num]
-
     def get_box_vals(self, box_pos: tuple = None, box_num: int = None):
         if box_num == None and box_pos == None:
             return
@@ -219,13 +213,6 @@ class Puzzle:
             for n, cell in enumerate(row):
                 vals[m, n] = cell.val
         return vals
-
-    def get_row_notes(self, row_num):
-        return self.notes.arr[row_num]
-
-    def get_col_notes(self, col_num):
-        transpose = list(map(list, zip(*self.notes.arr)))
-        return transpose[col_num]
 
     def get_box_notes(self, box_num: int = None, box_pos: tuple = None):
         if box_num == None and box_pos == None:
