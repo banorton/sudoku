@@ -1,13 +1,16 @@
 from itertools import chain
-import numpy as np
 from math import floor
 
 
 class Array:
     def __init__(self, arr):
         self.arr = arr
-        self.T = list(map(list, (zip(*arr))))
-        self.dim = (len(arr), len(arr[0]))
+        if not isinstance(arr[0], list):
+            self.T = [[el] for el in arr]
+            self.dim = (1, len(arr))
+        else:
+            self.T = list(map(list, (zip(*arr))))
+            self.dim = (len(arr), len(arr[0]))
 
     def flatten(self):
         return list(chain.from_iterable(self.arr))

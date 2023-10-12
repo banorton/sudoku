@@ -1,5 +1,7 @@
-from .generic import Positional, Array
+from .generic import Array
 from .helpers import find_puzzle_pos
+from itertools import chain
+import numpy as np
 
 
 class Cell:
@@ -16,16 +18,17 @@ class Cell:
 
 class Cell_Array(Array):
     def __init__(self, arr):
-        # Array.__init__(self, self.gen_arr(dim))
         Array.__init__(self, arr)
-        # self.np = self._init_np()
+        self.np = self._get_np(arr)
 
-    def gen_arr(self, dim):
-        arr = [[] for _ in range(dim[0])]
-        for row in range(dim[0]):
-            for col in range(dim[1]):
-                arr[row].append(Cell())
-        return arr
+    def _get_np(self, arr):
+        if self.dim[0] == 1:
+            return np.array([cell.val for cell in arr])
+        np_arr = np.zeros(self.dim, int)
+        for m in range(self.dim[0]):
+            for n in range(self.dim[1]):
+                np_arr[m, n] = arr[m][n].val
+        return np_arr
 
     def get_row(self, row_num, to_np=False):
         if to_np:
@@ -37,6 +40,9 @@ class Cell_Array(Array):
             return self.np[:, col_num]
         return self.T[col_num]
 
+    def flatten(self):
+        return Cell_Array(list(chain.from_iterable(self.arr)))
+
     # def _gen_notes(self):
     #     arr = [[] for _ in range(self.cell_dim[0])]
     #     for col_num in range(self.puzzle_dim[1]):
@@ -47,6 +53,3 @@ class Cell_Array(Array):
     #                 for cell in box_row:
     #                     arr[offset + i].append(cell.notes)
     #     self.notes = Array(arr)
-
-    # def _init_np(self):
-    #     pass

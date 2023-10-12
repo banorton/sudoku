@@ -7,7 +7,7 @@ def check_validity(puzzle):
     for box_num in range(1, 10):
         box_pos = num_to_pos(box_num, puzzle.puzzle_dim)
         box = puzzle.boxes.arr[box_pos[0]][box_pos[1]]
-        box_cells = box.cells.flatten(to_np=True)
+        box_cells = box.flatten().np
         box_cells = np.delete(box_cells, np.where(box_cells == 0))
         if box_cells.size > np.unique(box_cells).size:
             return 0

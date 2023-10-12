@@ -1,15 +1,15 @@
 import numpy as np
-from .generic import Positional, Array
+from .generic import Array
 from .cell import Cell, Cell_Array
 
 
-class Box(Array):
+class Box(Cell_Array):
     def __init__(
         self,
         dim: tuple = (3, 3),
     ):
         self.dim = dim
-        Array.__init__(self, self._gen_cell_arr(dim))
+        Cell_Array.__init__(self, self._gen_cell_arr(dim))
 
     def __str__(self):
         res = "\n"

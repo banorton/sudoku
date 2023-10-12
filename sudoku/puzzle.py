@@ -1,9 +1,7 @@
 import numpy as np
 from .solver import *
-from .generic import Array
 from .helpers import puzzle_pos_to_box_pos
-from .box import Box, Box_Array
-from .cell import Cell, Cell_Array
+from .box import Box_Array
 
 
 class Puzzle:
