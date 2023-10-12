@@ -7,22 +7,15 @@ class Array:
     def __init__(self, arr):
         self.arr = arr
         self.T = list(map(list, (zip(*arr))))
-        self.np = np.ndarray
         self.dim = (len(arr), len(arr[0]))
 
-    def flatten(self, to_np=False):
-        if to_np:
-            return np.array(list(chain.from_iterable(self.arr)))
+    def flatten(self):
         return list(chain.from_iterable(self.arr))
 
-    def get_row(self, row_num, to_np=False):
-        if to_np:
-            return self.np[row_num]
+    def get_row(self, row_num):
         return self.arr[row_num]
 
-    def get_col(self, col_num, to_np=False):
-        if to_np:
-            return self.np[:, col_num]
+    def get_col(self, col_num):
         return self.T[col_num]
 
 
