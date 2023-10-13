@@ -20,6 +20,7 @@ class Cell_Array(Array):
     def __init__(self, arr):
         Array.__init__(self, arr)
         self.np = self._get_np(arr)
+        self.notes = self._get_notes(arr)
 
     def _get_np(self, arr):
         if self.dim[0] == 1:
@@ -30,18 +31,26 @@ class Cell_Array(Array):
                 np_arr[m, n] = arr[m][n].val
         return np_arr
 
-    def get_row(self, row_num, to_np=False):
-        if to_np:
-            return self.np[row_num]
-        return self.arr[row_num]
+    def _get_notes(self, arr):
+        if self.dim[0] == 1:
+            return [cell.notes for cell in arr]
+        notes = [[] for _ in range(self.dim[0])]
+        for m in range(self.dim[0]):
+            for n in range(self.dim[1]):
+                notes[m].append(arr[m][n].notes)
+        return notes
 
-    def get_col(self, col_num, to_np=False):
-        if to_np:
-            return self.np[:, col_num]
-        return self.T[col_num]
+    def get_row(self, row_num):
+        return Cell_Array(self.arr[row_num])
+
+    def get_col(self, col_num):
+        return Cell_Array(self.arr[col_num])
 
     def flatten(self):
         return Cell_Array(list(chain.from_iterable(self.arr)))
+
+    def to_list(self):
+        return list(self.np)
 
     # def _gen_notes(self):
     #     arr = [[] for _ in range(self.cell_dim[0])]
