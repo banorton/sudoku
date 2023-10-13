@@ -1,6 +1,6 @@
 import numpy as np
 from .solver import *
-from .helpers import puzzle_pos_to_box_pos, num_to_pos
+from .helpers import puzzle_pos_to_box_pos, num_to_pos, puzzle_pos_to_box_num
 from .box import Box_Array
 
 
@@ -62,12 +62,15 @@ class Puzzle:
         a, b = box_pos
         m, n = cell_pos
         self.cells.arr[i][j].val = val
-        self.cells.np[i, j] = val
         self.boxes.arr[a][b].arr[m][n].val = val
+
+        # Make sure numpy arrays match the lists.
+        self.cells.np[i, j] = val
         self.boxes.arr[a][b].np[m, n] = val
 
         if propagate:
-            pass
+            row, col = pos
+            self.del_notes(val, rows=[row], cols=[col], boxes=[box_pos])
 
     def get_row(self, row_num: int):
         return self.cells.get_row(row_num)
@@ -76,43 +79,32 @@ class Puzzle:
         return self.cells.get_row(col_num)
 
     def get_box(self, num: int):
-        pos = num_to_pos(num, self.puzzle_dim)
-        return self.boxes.arr[pos[0]][pos[1]]
+        row, col = num_to_pos(num, self.puzzle_dim)
+        return self.boxes.arr[row][col]
 
-    def del_notes(self, val: int, rows=[], cols=[], boxes=[]):
+    def del_notes(self, val: int, rows=[], cols=[], boxes=[], positions=[]):
         for row_num in rows:
-            self._del_notes_row(val, row_num)
+            self.del_notes_row(val, row_num)
         for col_num in cols:
-            self._del_notes_col(val, col_num)
-        for box_num in boxes:
-            self._del_notes_box(val, box_num)
+            self.del_notes_col(val, col_num)
+        for box_pos in boxes:
+            self.del_notes_box(val, box_pos)
+        for pos in positions:
+            self.del_notes_pos(val, pos)
 
-    def del_notes_row(self, row_num, num):
-        for col_num in range(9):
-            if len(self.notes[row_num][col_num]) != 1:
-                # self.notes[row_num][col_num].discard(num)
-                self.discard_note((row_num, col_num), num)
+    def del_notes_row(self, val, row_num):
+        self.cells.get_row(row_num).del_notes(val)
 
-    def del_notes_col(self, col_num, num):
-        for row_num in range(9):
-            if len(self.notes[row_num][col_num]) != 1:
-                # self.notes[row_num][col_num].discard(num)
-                self.discard_note((row_num, col_num), num)
+    def del_notes_col(self, val, col_num):
+        self.cells.get_col(col_num).del_notes(val)
 
-    def del_notes_box(self, box_pos, num):
-        box_row = box_pos[0] + 1
-        box_col = box_pos[1] + 1
-        row_nums = [box_row * 3 - 3, box_row * 3 - 2, box_row * 3 - 1]
-        for row_num in row_nums:
-            if len(self.notes[row_num][box_col * 3 - 3]) != 1:
-                # self.notes[row_num][box_col*3-3].discard(num)
-                self.discard_note((row_num, box_col * 3 - 3), num)
-            if len(self.notes[row_num][box_col * 3 - 2]) != 1:
-                # self.notes[row_num][box_col*3-2].discard(num)
-                self.discard_note((row_num, box_col * 3 - 2), num)
-            if len(self.notes[row_num][box_col * 3 - 1]) != 1:
-                # self.notes[row_num][box_col*3-1].discard(num)
-                self.discard_note((row_num, box_col * 3 - 1), num)
+    def del_notes_box(self, val, box_pos):
+        m, n = box_pos
+        box = self.boxes.arr[m][n]
+        box.del_notes(val)
+
+    def del_notes_pos(self, val, pos):
+        pass
 
     def solve(self):
         if not check_validity(self):

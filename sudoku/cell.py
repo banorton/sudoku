@@ -7,13 +7,13 @@ import numpy as np
 class Cell:
     def __init__(self, val=0):
         self.val = val
-        self.notes = {i for i in range(1, 10)}
+        self.notes = set(range(1, 10))
 
-    def __str__(self):
-        return str(self.val)
+    # def __str__(self):
+    #     return str(self.val)
 
-    def __repr__(self):
-        return str(self.val)
+    # def __repr__(self):
+    #     return str(self.val)
 
 
 class Cell_Array(Array):
@@ -47,10 +47,17 @@ class Cell_Array(Array):
         return Cell_Array(self.arr[col_num])
 
     def flatten(self):
+        if self.dim[0] == 1:
+            return self
         return Cell_Array(list(chain.from_iterable(self.arr)))
 
     def to_list(self):
         return list(self.np)
+
+    def del_notes(self, val):
+        cells = self.flatten().arr
+        for cell in cells:
+            cell.notes.discard(val)
 
     # def _gen_notes(self):
     #     arr = [[] for _ in range(self.cell_dim[0])]

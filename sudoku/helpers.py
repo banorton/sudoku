@@ -1,3 +1,6 @@
+# Change puzzle_pos_to_box_pos, puzzle_pos_to_box_num, and find_puzzle_pos
+# to take puzzle object instead of all the dimensions.
+
 from math import floor, ceil
 
 
@@ -23,6 +26,17 @@ def puzzle_pos_to_box_pos(puzzle_pos: tuple, box_dim: tuple) -> tuple:
     cell_row = ((puzzle_pos[0] + 1) % box_dim[0]) - 1
     cell_col = ((puzzle_pos[1] + 1) % box_dim[1]) - 1
     return ((box_row, box_col), (cell_row, cell_col))
+
+
+def puzzle_pos_to_box_num(
+    puzzle_pos: tuple, box_dim: tuple, puzzle_dim: tuple
+) -> tuple:
+    box_pos, cell_pos = puzzle_pos_to_box_pos(puzzle_pos, box_dim)
+    try:
+        test = pos_to_num(box_pos, puzzle_dim)
+    except:
+        pass
+    return test
 
 
 def find_puzzle_pos(cell_pos: tuple, box_pos: tuple, box_dim: tuple) -> tuple:
