@@ -22,7 +22,7 @@ class Box(Cell_Array):
         arr = [[] for _ in range(dim[0])]
         for row in range(dim[0]):
             for col in range(dim[1]):
-                arr[row].append(Cell())
+                arr[row].append(Cell(parent=self))
         return arr
 
     def get_vals(self, to_np=False):

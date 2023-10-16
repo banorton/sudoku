@@ -48,10 +48,10 @@ class Puzzle:
     def _assign_vals(self, vals):
         if not isinstance(vals, np.ndarray):
             vals = np.array(vals)
-        vals = np.reshape(vals, self.cell_dim)
+        vals = np.reshape(vals, self.cell_dim).tolist()
         for m in range(self.cell_dim[0]):
             for n in range(self.cell_dim[1]):
-                self.update_cell((m, n), vals[m, n])
+                self.update_cell((m, n), vals[m][n])
 
     def load(self, vals):
         self._assign_vals(vals)
@@ -80,8 +80,8 @@ class Puzzle:
         i, j = pos
         a, b = box_pos
         m, n = cell_pos
-        self.cells.arr[i][j].val = val
-        self.cells.arr[i][j].notes = {val}
+        self.cells[i, j].val = val
+        self.cells[i, j].notes = {val}
 
         # Make sure numpy arrays match the lists.
         self.cells.np[i, j] = val
