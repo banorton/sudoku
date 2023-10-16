@@ -1,6 +1,6 @@
 import numpy as np
 from .solver import *
-from .helpers import puzzle_pos_to_box_pos
+from .helpers import puzzle_pos_to_box_pos, num_to_pos, puzzle_pos_to_box_num
 from .box import Box_Array
 
 
@@ -26,7 +26,7 @@ class Puzzle:
     def __str__(self):
         puzzle_str = ""
         for row_num in range(self.cell_dim[0]):
-            row = self.cells.get_row(row_num)
+            row = self.cells.get_row(row_num).to_vals()
             # Print horizontal seperators between boxes.
             if (row_num % self.box_dim[0]) == 0:
                 puzzle_str += "-------------------------------------------------------------------------------------------------\n"
@@ -56,12 +56,102 @@ class Puzzle:
     def load(self, vals):
         self._assign_vals(vals)
 
+    def get_cell(self, pos: tuple):
+        row, col = pos
+        return self.cells.arr[row][col]
+
+    def get_row(self, row_num: int):
+        return self.cells.get_row(row_num)
+
+    def get_col(self, col_num: int):
+        return self.cells.get_col(col_num)
+
+    def get_box(self, pos: int):
+        row, col = pos
+        return self.boxes.arr[row][col]
+
     def update_cell(self, pos: tuple, val: int, propagate=True):
-        self.cells.arr[pos[0]][pos[1]].val = val
+        if val == 0:
+            return
+        test1, test2 = pos
+        print(f"UPDATING {pos} : {val}")
+        self.cells_unsolved -= 1
+        box_pos, cell_pos = puzzle_pos_to_box_pos(self, pos)
+        i, j = pos
+        a, b = box_pos
+        m, n = cell_pos
+        self.cells.arr[i][j].val = val
+        self.cells.arr[i][j].notes = {val}
+
+        # Make sure numpy arrays match the lists.
+        self.cells.np[i, j] = val
+        self.boxes.arr[a][b].np[m, n] = val
+
+        if propagate:
+            row, col = pos
+            self.del_notes(val, rows=[row], cols=[col], boxes=[box_pos], save=pos)
+
+        if not self.cells_unsolved:
+            print("SOLVED!!!!!!!!!")
+
+        if not is_valid(self):
+            raise Exception("Not valid.")
+
+    def del_notes(self, vals, rows=[], cols=[], boxes=[], positions=[], save=tuple()):
+        if isinstance(vals, tuple) or isinstance(vals, list):
+            for val in vals:
+                for row_num in rows:
+                    self.del_notes_row(val, row_num)
+                for col_num in cols:
+                    self.del_notes_col(val, col_num)
+                for box_pos in boxes:
+                    self.del_notes_box(val, box_pos)
+                for pos in positions:
+                    self.del_notes_pos(val, pos)
+                if save:
+                    self.cells.arr[save[0]][save[1]].notes.add(val)
+        else:
+            for row_num in rows:
+                self.del_notes_row(vals, row_num)
+            for col_num in cols:
+                self.del_notes_col(vals, col_num)
+            for box_pos in boxes:
+                self.del_notes_box(vals, box_pos)
+            for pos in positions:
+                self.del_notes_pos(vals, pos)
+            if save:
+                self.cells.arr[save[0]][save[1]].notes.add(vals)
+
+    def del_notes_row(self, val, row_num):
+        self.cells.get_row(row_num).del_notes(val)
+        print("del row: ", row_num, " val: ", val)
+
+    def del_notes_col(self, val, col_num):
+        self.cells.get_col(col_num).del_notes(val)
+        print("del col: ", col_num, " val: ", val)
+
+    def del_notes_box(self, val, box_pos):
+        m, n = box_pos
+        box = self.boxes.arr[m][n]
+        box.del_notes(val)
+        print("del box: ", box_pos, " val: ", val)
+
+    def del_notes_pos(self, val, pos):
+        pass
 
     def solve(self):
-        valid = check_validity(self)
-        if valid:
-            print("Valid")
-        else:
-            print("Invalid")
+        if not is_valid(self):
+            print("Not a valid puzzle.")
+
+        for _ in range(5):
+            print("NAKED SINGLES")
+            find_naked_singles(self)
+            print()
+            print("HIDDEN SINGLES")
+            find_hidden_singles(self)
+            print()
+            # print("NAKED DOUBLES")
+            # find_naked_doubles(self)
+            # print()
+            if not self.cells_unsolved:
+                break

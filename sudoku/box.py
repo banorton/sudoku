@@ -8,7 +8,6 @@ class Box(Cell_Array):
         self,
         dim: tuple = (3, 3),
     ):
-        self.dim = dim
         Cell_Array.__init__(self, self._gen_cell_arr(dim))
 
     def __str__(self):
@@ -20,9 +19,9 @@ class Box(Cell_Array):
         return res
 
     def _gen_cell_arr(self, dim: tuple):
-        arr = [[] for _ in range(self.dim[0])]
-        for row in range(self.dim[0]):
-            for col in range(self.dim[1]):
+        arr = [[] for _ in range(dim[0])]
+        for row in range(dim[0]):
+            for col in range(dim[1]):
                 arr[row].append(Cell())
         return arr
 
