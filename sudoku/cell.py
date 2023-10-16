@@ -20,22 +20,6 @@ class Cell_Array(Array):
         Array.__init__(self, prep_arr)
         self.np = self._get_np(prep_arr)
 
-    def __getitem__(self, pos):
-        if isinstance(pos, tuple):
-            if len(pos) == 2:
-                return self.arr[pos[0]][pos[1]]
-            else:
-                raise Exception(
-                    f"Index takes only 1 or 2 values. {len(pos)} were given."
-                )
-        elif isinstance(pos, int):
-            return self.arr[pos]
-        else:
-            raise Exception(f"{pos} is not a valid index.")
-
-    def __iter__(self):
-        return self.arr
-
     def _get_np(self, arr):
         if self.dim[0] == 1:
             return np.array([cell.val for cell in arr])
@@ -59,15 +43,15 @@ class Cell_Array(Array):
 
     # def update_cell(self, pos: tuple(int, int), val: int):
     #     m, n = pos
-    #     self.cells.arr[i][j].val = val
-    #     self.cells.arr[i][j].notes = {val}
+    #     self.cells[i][j].val = val
+    #     self.cells[i][j].notes = {val}
 
     #     # Make sure numpy arrays match the lists.
     #     self.cells.np[i, j] = val
-    #     self.boxes.arr[a][b].np[m, n] = val
+    #     self.boxes[a][b].np[m, n] = val
 
     def get_row(self, row_num):
-        return Cell_Array(self.arr[row_num])
+        return Cell_Array(self[row_num])
 
     def get_col(self, col_num):
         return Cell_Array(self.T[col_num])
@@ -75,7 +59,7 @@ class Cell_Array(Array):
     def flatten(self):
         if self.dim[0] == 1:
             return self
-        return Cell_Array(list(chain.from_iterable(self.arr)))
+        return Cell_Array(list(chain.from_iterable(self)))
 
     def to_vals(self) -> list:
         return list(self.np)
@@ -83,18 +67,18 @@ class Cell_Array(Array):
     def to_notes(self) -> list:
         if self.dim[0] == 1:
             notes = []
-            for cell in self.arr:
+            for cell in self:
                 notes.append(cell.notes)
             return notes
 
         notes = [[] for _ in range(self.dim[0])]
-        for m, row in enumerate(self.arr):
+        for m, row in enumerate(self):
             for cell in row:
                 notes[m].append(cell.notes)
             return notes
 
     def del_notes(self, val):
-        cells = self.flatten().arr
+        cells = self.flatten()
         for cell in cells:
             if len(cell.notes) > 1:
                 cell.notes.discard(val)

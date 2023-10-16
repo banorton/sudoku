@@ -14,7 +14,7 @@ class Box(Cell_Array):
         res = "\n"
         for row in range(self.dim[0]):
             for col in range(self.dim[1]):
-                res += str(self.arr[row][col].val) + " "
+                res += str(self[row][col].val) + " "
             res += "\n"
         return res
 
@@ -71,8 +71,8 @@ class Box_Array(Array):
         arr = [[] for _ in range(self.cell_dim[0])]
         for col_num in range(self.dim[1]):
             for row_num in range(self.dim[0]):
-                curr_box = self.arr[row_num][col_num]
-                for i, box_row in enumerate(curr_box.arr):
+                curr_box = self[row_num][col_num]
+                for i, box_row in enumerate(curr_box):
                     offset = row_num * self.box_dim[0]
                     for cell in box_row:
                         arr[offset + i].append(cell)

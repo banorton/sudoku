@@ -58,7 +58,7 @@ class Puzzle:
 
     def get_cell(self, pos: tuple):
         row, col = pos
-        return self.cells.arr[row][col]
+        return self.cells[row][col]
 
     def get_row(self, row_num: int):
         return self.cells.get_row(row_num)
@@ -68,7 +68,7 @@ class Puzzle:
 
     def get_box(self, pos: int):
         row, col = pos
-        return self.boxes.arr[row][col]
+        return self.boxes[row][col]
 
     def update_cell(self, pos: tuple, val: int, propagate=True):
         if val == 0:
@@ -85,7 +85,7 @@ class Puzzle:
 
         # Make sure numpy arrays match the lists.
         self.cells.np[i, j] = val
-        self.boxes.arr[a][b].np[m, n] = val
+        self.boxes[a][b].np[m, n] = val
 
         if propagate:
             row, col = pos
@@ -109,7 +109,7 @@ class Puzzle:
                 for pos in positions:
                     self.del_notes_pos(val, pos)
                 if save:
-                    self.cells.arr[save[0]][save[1]].notes.add(val)
+                    self.cells[save[0]][save[1]].notes.add(val)
         else:
             for row_num in rows:
                 self.del_notes_row(vals, row_num)
@@ -120,7 +120,7 @@ class Puzzle:
             for pos in positions:
                 self.del_notes_pos(vals, pos)
             if save:
-                self.cells.arr[save[0]][save[1]].notes.add(vals)
+                self.cells[save[0]][save[1]].notes.add(vals)
 
     def del_notes_row(self, val, row_num):
         self.cells.get_row(row_num).del_notes(val)
@@ -132,7 +132,7 @@ class Puzzle:
 
     def del_notes_box(self, val, box_pos):
         m, n = box_pos
-        box = self.boxes.arr[m][n]
+        box = self.boxes[m][n]
         box.del_notes(val)
         print("del box: ", box_pos, " val: ", val)
 

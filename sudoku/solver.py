@@ -7,7 +7,7 @@ def is_valid(p):
     # Check boxs for duplicates.
     for box_num in range(1, 10):
         box_pos = num_to_pos(box_num, p.puzzle_dim)
-        box = p.boxes.arr[box_pos[0]][box_pos[1]]
+        box = p.boxes[box_pos[0]][box_pos[1]]
         box_cells = box.flatten().np
         box_cells = np.delete(box_cells, np.where(box_cells == 0))
         if box_cells.size > np.unique(box_cells).size:
@@ -34,7 +34,7 @@ def is_valid(p):
 def find_naked_singles(p):
     for row_num in range(9):
         for col_num in range(9):
-            notes = p.cells.arr[row_num][col_num].notes
+            notes = p.cells[row_num][col_num].notes
             if len(notes) == 1:
                 if p.cells.np[row_num, col_num] == 0:
                     num = notes.pop()
@@ -85,13 +85,13 @@ def find_hidden_singles(p):
             box = p.get_box(box_pos)
 
             row_notes = []
-            for row_cell in row.arr:
+            for row_cell in row:
                 row_notes.extend(list(row_cell.notes))
             col_notes = []
-            for col_cell in col.arr:
+            for col_cell in col:
                 col_notes.extend(list(col_cell.notes))
             box_notes = []
-            for box_cell in box.flatten().arr:
+            for box_cell in box.flatten():
                 box_notes.extend(list(box_cell.notes))
 
             for val in list(cell.notes):
