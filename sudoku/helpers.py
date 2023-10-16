@@ -37,9 +37,9 @@ def puzzle_pos_to_box_num(p, puzzle_pos: tuple) -> tuple:
     return test
 
 
-def find_puzzle_pos(p, box_pos: tuple, cell_pos: tuple) -> tuple:
+def find_puzzle_pos(box_dim: tuple, box_pos: tuple, cell_pos: tuple) -> tuple:
     cell_row, cell_col = cell_pos
     box_row, box_col = box_pos
-    puzzle_row = cell_row + box_row * p.box_dim[0]
-    puzzle_col = cell_col + box_col * p.box_dim[1]
+    puzzle_row = cell_row + box_row * box_dim[0]
+    puzzle_col = cell_col + box_col * box_dim[1]
     return (puzzle_row, puzzle_col)

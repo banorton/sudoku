@@ -1,6 +1,7 @@
 import numpy as np
 from .generic import Array
 from .cell import Cell, Cell_Array
+from .helpers import find_puzzle_pos
 
 
 class Box(Cell_Array):
@@ -22,7 +23,7 @@ class Box(Cell_Array):
         arr = [[] for _ in range(dim[0])]
         for row in range(dim[0]):
             for col in range(dim[1]):
-                arr[row].append(Cell(parent=self))
+                arr[row].append(Cell(parent=self, pos=(row, col)))
         return arr
 
     def get_vals(self, to_np=False):
@@ -75,5 +76,8 @@ class Box_Array(Array):
                 for i, box_row in enumerate(curr_box):
                     offset = row_num * self.box_dim[0]
                     for cell in box_row:
+                        cell.pos = find_puzzle_pos(
+                            self.box_dim, (row_num, col_num), cell.pos
+                        )
                         arr[offset + i].append(cell)
         return Cell_Array(arr)

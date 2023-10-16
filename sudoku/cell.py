@@ -5,13 +5,25 @@ import numpy as np
 
 
 class Cell:
-    def __init__(self, val=0, parent=None):
-        self.val = val
+    def __init__(self, val=0, parent=None, pos=None):
+        self._val = val
+        self.pos = pos
         if val == 0:
             self.notes = set(range(1, 10))
         else:
             self.notes = {val}
         self.parent = parent
+
+    @property
+    def val(self):
+        return self._val
+
+    @val.setter
+    def val(self, new_val):
+        if self.parent != None:
+            i, j = self.pos
+            self.parent.np[i, j] = new_val
+        self._val = new_val
 
 
 class Cell_Array(Array):
@@ -32,13 +44,22 @@ class Cell_Array(Array):
     def _prep_arr(self, arr):
         if not isinstance(arr[0], list):
             if not isinstance(arr[0], Cell):
-                return [Cell(val=arr[i], parent=self) for i in range(len(arr))]
+                return [
+                    Cell(val=arr[i], parent=self, pos=(0, i)) for i in range(len(arr))
+                ]
         else:
             if not isinstance(arr[0][0], Cell):
                 for row in range(len(arr)):
                     for col in range(len(arr[0])):
-                        arr[row][col] = Cell(val=arr[row][col], parent=self)
-                return arr
+                        arr[row][col] = Cell(
+                            val=arr[row][col], parent=self, pos=(row, col)
+                        )
+            else:
+                for row in range(len(arr)):
+                    for col in range(len(arr[0])):
+                        arr[row][col].parent = self
+                        arr[row][col].pos = (row, col)
+            return arr
         return arr
 
     # def update_cell(self, pos: tuple(int, int), val: int):
@@ -80,5 +101,7 @@ class Cell_Array(Array):
     def del_notes(self, val):
         cells = self.flatten()
         for cell in cells:
+            if cell.pos == (5, 5) and val == 3:
+                print()
             if len(cell.notes) > 1:
                 cell.notes.discard(val)

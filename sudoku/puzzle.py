@@ -23,6 +23,12 @@ class Puzzle:
         if not (vals is None):
             self._assign_vals(vals)
 
+    def __getitem__(self, pos):
+        return self.cells[pos[0], pos[1]]
+
+    def __iter__(self):
+        yield from self.cells
+
     def __str__(self):
         puzzle_str = ""
         for row_num in range(self.cell_dim[0]):
@@ -73,19 +79,16 @@ class Puzzle:
     def update_cell(self, pos: tuple, val: int, propagate=True):
         if val == 0:
             return
-        test1, test2 = pos
+        #################
+        if pos == (4, 4):
+            print()
+        #################
         print(f"UPDATING {pos} : {val}")
         self.cells_unsolved -= 1
-        box_pos, cell_pos = puzzle_pos_to_box_pos(self, pos)
+        box_pos, _ = puzzle_pos_to_box_pos(self, pos)
         i, j = pos
-        a, b = box_pos
-        m, n = cell_pos
         self.cells[i, j].val = val
         self.cells[i, j].notes = {val}
-
-        # Make sure numpy arrays match the lists.
-        self.cells.np[i, j] = val
-        self.boxes[a][b].np[m, n] = val
 
         if propagate:
             row, col = pos
