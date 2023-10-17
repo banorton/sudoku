@@ -5,11 +5,9 @@ from .helpers import find_puzzle_pos
 
 
 class Box(Cell_Array):
-    def __init__(
-        self,
-        dim: tuple = (3, 3),
-    ):
-        Cell_Array.__init__(self, self._gen_cell_arr(dim))
+    def __init__(self, dim: tuple = (3, 3), pos: tuple = None):
+        self.pos = pos
+        Cell_Array.__init__(self, self._gen_cell_arr(dim), parent=self)
 
     def __str__(self):
         res = "\n"
@@ -23,7 +21,7 @@ class Box(Cell_Array):
         arr = [[] for _ in range(dim[0])]
         for row in range(dim[0]):
             for col in range(dim[1]):
-                arr[row].append(Cell(parent=self, pos=(row, col)))
+                arr[row].append(Cell(pos=(row, col), box_pos=self.pos, parent=self))
         return arr
 
     def get_vals(self, to_np=False):
@@ -56,7 +54,7 @@ class Box_Array(Array):
         arr = [[] for _ in range(dim[0])]
         for row in range(dim[0]):
             for col in range(dim[1]):
-                arr[row].append(Box(box_dim))
+                arr[row].append(Box(box_dim, (row, col)))
         return arr
 
     def _assign_vals(self, vals):

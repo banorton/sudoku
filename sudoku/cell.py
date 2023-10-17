@@ -1,20 +1,21 @@
 # TODO: Clean up the array indexing in __getitem__.
 
 from .generic import Array
-from .helpers import transpose
 from itertools import chain
 import numpy as np
+from .helpers import puzzle_pos_to_box_pos2
 
 
 class Cell:
-    def __init__(self, val=0, parent=None, pos=None):
+    def __init__(self, val=0, parent=None, box_pos=None, pos=None):
         self._val = val
         self.pos = pos
+        self.parent = parent
+        self.box_pos = box_pos
         if val == 0:
             self.notes = set(range(1, 10))
         else:
             self.notes = {val}
-        self.parent = parent
 
     @property
     def val(self):
@@ -29,7 +30,8 @@ class Cell:
 
 
 class Cell_Array(Array):
-    def __init__(self, arr):
+    def __init__(self, arr, parent=None):
+        self.parent = parent
         prep_arr = self._prep_arr(arr)
         Array.__init__(self, prep_arr)
         self.np = self._get_np(prep_arr)
@@ -81,6 +83,8 @@ class Cell_Array(Array):
                     for col in range(len(arr[0])):
                         arr[row][col].parent = self
                         arr[row][col].pos = (row, col)
+                        if self.parent:
+                            arr[row][col].box_pos = self.parent.pos
             return arr
         return arr
 

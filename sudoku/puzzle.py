@@ -142,7 +142,7 @@ class Puzzle:
             print("\nNAKED DOUBLES")
             found.append(find_naked_doubles(self))
 
-            print("\HIDDEN DOUBLES")
+            print("\nHIDDEN DOUBLES")
             found.append(find_hidden_doubles(self))
 
             if not self.cells_unsolved:
