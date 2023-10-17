@@ -43,3 +43,10 @@ def find_puzzle_pos(box_dim: tuple, box_pos: tuple, cell_pos: tuple) -> tuple:
     puzzle_row = cell_row + box_row * box_dim[0]
     puzzle_col = cell_col + box_col * box_dim[1]
     return (puzzle_row, puzzle_col)
+
+
+def transpose(arr: list) -> tuple:
+    if not isinstance(arr[0], list):
+        return [[el] for el in arr]
+    else:
+        return list(map(list, (zip(*arr))))

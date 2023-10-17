@@ -1,5 +1,7 @@
+# TODO: Clean up the array indexing in __getitem__.
+
 from .generic import Array
-from .helpers import find_puzzle_pos
+from .helpers import transpose
 from itertools import chain
 import numpy as np
 
@@ -32,6 +34,26 @@ class Cell_Array(Array):
         Array.__init__(self, prep_arr)
         self.np = self._get_np(prep_arr)
 
+    # def __getitem__(self, pos):
+    #     res = None
+    #     if isinstance(pos, int):
+    #         res = self.arr[pos]
+    #     elif pos[0] == slice(None, None, None) and isinstance(pos[1], int):
+    #         res = transpose(self.T[pos[1]])
+    #     elif isinstance(pos[0], int) and pos[1] == slice(None, None, None):
+    #         res = self.arr[pos[0]]
+    #     elif isinstance(pos[0], int) and isinstance(pos[1], slice):
+    #         res = self.arr[pos[0]][pos[1]]
+    #     elif isinstance(pos[0], slice) and isinstance(pos[1], int):
+    #         res = transpose(self.T[pos[1]][pos[0]])
+    #     elif isinstance(pos[0], int) and isinstance(pos[1], int):
+    #         return self.arr[pos[0]][pos[1]]
+
+    #     if isinstance(res, list):
+    #         return Cell_Array(res)
+    #     else:
+    #         return res
+
     def _get_np(self, arr):
         if self.dim[0] == 1:
             return np.array([cell.val for cell in arr])
@@ -61,15 +83,6 @@ class Cell_Array(Array):
                         arr[row][col].pos = (row, col)
             return arr
         return arr
-
-    # def update_cell(self, pos: tuple(int, int), val: int):
-    #     m, n = pos
-    #     self.cells[i][j].val = val
-    #     self.cells[i][j].notes = {val}
-
-    #     # Make sure numpy arrays match the lists.
-    #     self.cells.np[i, j] = val
-    #     self.boxes[a][b].np[m, n] = val
 
     def get_row(self, row_num):
         return Cell_Array(self[row_num])
@@ -101,7 +114,5 @@ class Cell_Array(Array):
     def del_notes(self, val):
         cells = self.flatten()
         for cell in cells:
-            if cell.pos == (5, 5) and val == 3:
-                print()
             if len(cell.notes) > 1:
                 cell.notes.discard(val)

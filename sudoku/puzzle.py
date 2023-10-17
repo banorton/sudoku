@@ -24,7 +24,7 @@ class Puzzle:
             self._assign_vals(vals)
 
     def __getitem__(self, pos):
-        return self.cells[pos[0], pos[1]]
+        return self.cells.__getitem__(pos)
 
     def __iter__(self):
         yield from self.cells
@@ -79,51 +79,35 @@ class Puzzle:
     def update_cell(self, pos: tuple, val: int, propagate=True):
         if val == 0:
             return
-        #################
-        if pos == (4, 4):
-            print()
-        #################
         print(f"UPDATING {pos} : {val}")
         self.cells_unsolved -= 1
         box_pos, _ = puzzle_pos_to_box_pos(self, pos)
         i, j = pos
-        self.cells[i, j].val = val
-        self.cells[i, j].notes = {val}
+        self[i, j].val = val
+        self[i, j].notes = {val}
 
         if propagate:
             row, col = pos
-            self.del_notes(val, rows=[row], cols=[col], boxes=[box_pos], save=pos)
-
-        if not self.cells_unsolved:
-            print("SOLVED!!!!!!!!!")
+            self.del_notes(
+                vals=[val], rows=[row], cols=[col], boxes=[box_pos], save=[pos]
+            )
 
         if not is_valid(self):
             raise Exception("Not valid.")
 
-    def del_notes(self, vals, rows=[], cols=[], boxes=[], positions=[], save=tuple()):
-        if isinstance(vals, tuple) or isinstance(vals, list):
-            for val in vals:
-                for row_num in rows:
-                    self.del_notes_row(val, row_num)
-                for col_num in cols:
-                    self.del_notes_col(val, col_num)
-                for box_pos in boxes:
-                    self.del_notes_box(val, box_pos)
-                for pos in positions:
-                    self.del_notes_pos(val, pos)
-                if save:
-                    self.cells[save[0]][save[1]].notes.add(val)
-        else:
+    def del_notes(self, vals=[], rows=[], cols=[], boxes=[], positions=[], save=[]):
+        for val in vals:
             for row_num in rows:
-                self.del_notes_row(vals, row_num)
+                self.del_notes_row(val, row_num)
             for col_num in cols:
-                self.del_notes_col(vals, col_num)
+                self.del_notes_col(val, col_num)
             for box_pos in boxes:
-                self.del_notes_box(vals, box_pos)
+                self.del_notes_box(val, box_pos)
             for pos in positions:
-                self.del_notes_pos(vals, pos)
+                self.del_notes_pos(val, pos)
             if save:
-                self.cells[save[0]][save[1]].notes.add(vals)
+                for pos in save:
+                    self.cells[pos[0]][pos[1]].notes.add(val)
 
     def del_notes_row(self, val, row_num):
         self.cells.get_row(row_num).del_notes(val)
@@ -146,15 +130,21 @@ class Puzzle:
         if not is_valid(self):
             print("Not a valid puzzle.")
 
-        for _ in range(5):
-            print("NAKED SINGLES")
-            find_naked_singles(self)
-            print()
-            print("HIDDEN SINGLES")
-            find_hidden_singles(self)
-            print()
-            # print("NAKED DOUBLES")
-            # find_naked_doubles(self)
-            # print()
+        found = [1]
+        while any(found):
+            found = []
+            print("\nNAKED SINGLES")
+            found.append(find_naked_singles(self))
+
+            print("\nHIDDEN SINGLES")
+            found.append(find_hidden_singles(self))
+
+            print("\nNAKED DOUBLES")
+            found.append(find_naked_doubles(self))
+
+            print("\HIDDEN DOUBLES")
+            found.append(find_hidden_doubles(self))
+
             if not self.cells_unsolved:
+                print("SOLVED!!!!!!!!!")
                 break

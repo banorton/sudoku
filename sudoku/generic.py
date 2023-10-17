@@ -1,5 +1,7 @@
+# TODO: Clean up the array indexing in __getitem__.
+
 from itertools import chain
-from math import floor
+from .helpers import transpose
 
 
 class Array:
@@ -9,21 +11,20 @@ class Array:
             self.T = [[el] for el in arr]
             self.dim = (1, len(arr))
         else:
-            self.T = list(map(list, (zip(*arr))))
+            self.T = transpose(arr)
             self.dim = (len(arr), len(arr[0]))
 
     def __getitem__(self, pos):
-        if isinstance(pos, tuple):
-            if len(pos) == 2:
-                return self.arr[pos[0]][pos[1]]
-            else:
-                raise Exception(
-                    f"Index takes only 1 or 2 values. {len(pos)} were given."
-                )
-        elif isinstance(pos, int):
-            return self.arr[pos]
-        else:
-            raise Exception(f"{pos} is not a valid index.")
+        res = None
+        if isinstance(pos, int):
+            res = self.arr[pos]
+        elif pos[0] == slice(None, None, None) and isinstance(pos[1], int):
+            res = self.T[pos[1]]
+        elif isinstance(pos[0], int) and pos[1] == slice(None, None, None):
+            res = self.arr[pos[0]]
+        elif isinstance(pos[0], int) and isinstance(pos[1], int):
+            res = self.arr[pos[0]][pos[1]]
+        return res
 
     def __iter__(self):
         yield from self.arr
