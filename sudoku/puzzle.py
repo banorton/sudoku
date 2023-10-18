@@ -133,6 +133,8 @@ class Puzzle:
         print(f"del cell: {poss}, val: {vals}, save: {save_vals}")
 
     def solve(self):
+        if not self.cells_unsolved:
+            return True
         if not is_valid(self):
             print("Not a valid puzzle.")
 
@@ -140,35 +142,21 @@ class Puzzle:
         ct = 0
         while any(found) and ct < 20:
             found = []
-            print("\nNAKED SINGLES")
             found.append(find_naked_singles(self))
-
-            print("\nHIDDEN SINGLES")
             found.append(find_hidden_singles(self))
-
-            print("\nNAKED DOUBLES")
             found.append(find_naked_doubles(self))
-
-            print("\nHIDDEN DOUBLES")
             found.append(find_hidden_doubles(self))
-
-            print("\nNAKED TRIPLES")
             found.append(find_naked_triples(self))
-
-            print("\nHIDDEN TRIPLES")
             found.append(find_hidden_triples(self))
-
-            print("\nNAKED QUADRUPLES")
             found.append(find_naked_quadruples(self))
-
-            print("\nHIDDEN QUADRUPLES")
             found.append(find_hidden_quadruples(self))
-
-            print("\nINLINE")
             found.append(find_inline(self))
 
             if not self.cells_unsolved:
                 print("SOLVED!!!!!!!!!")
-                break
+                return True
 
             ct += 1
+
+        if self.cells_unsolved:
+            nishio(self)

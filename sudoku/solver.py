@@ -3,6 +3,7 @@
 import numpy as np
 from .helpers import *
 from collections import defaultdict
+from copy import deepcopy as dcopy
 
 
 def is_valid(p):
@@ -13,6 +14,7 @@ def is_valid(p):
         box_cells = box.flatten().np
         box_cells = np.delete(box_cells, np.where(box_cells == 0))
         if box_cells.size > np.unique(box_cells).size:
+            raise Exception
             return 0
 
     # Check rows for duplicates.
@@ -20,6 +22,7 @@ def is_valid(p):
         row = p.cells.get_row(row_num).np
         row = np.delete(row, np.where(row == 0))
         if row.size > np.unique(row).size:
+            raise Exception
             return 0
 
     # Check columns for duplicates.
@@ -27,6 +30,7 @@ def is_valid(p):
         col = p.cells.get_col(col_num).np
         col = np.delete(col, np.where(col == 0))
         if col.size > np.unique(col).size:
+            raise Exception
             return 0
 
     # Return 1 if the board state is valid.
@@ -36,6 +40,7 @@ def is_valid(p):
 ############################################################################
 # NAKED
 def find_naked_singles(p) -> bool:
+    print("\nNAKED SINGLES")
     found = False
     for row_num in range(9):
         for col_num in range(9):
@@ -48,6 +53,8 @@ def find_naked_singles(p) -> bool:
 
 
 def find_naked_doubles(p) -> bool:
+    print("\nNAKED DOUBLES")
+
     def def_val():
         return []
 
@@ -87,6 +94,8 @@ def find_naked_doubles(p) -> bool:
 
 
 def find_naked_triples(p):
+    print("\nNAKED TRIPLES")
+
     def def_val():
         return []
 
@@ -126,6 +135,8 @@ def find_naked_triples(p):
 
 
 def find_naked_quadruples(p):
+    print("\nNAKED QUADRUPLES")
+
     def def_val():
         return []
 
@@ -167,6 +178,7 @@ def find_naked_quadruples(p):
 ############################################################################
 # HIDDEN
 def find_hidden_singles(p) -> bool:
+    print("\nHIDDEN SINGLES")
     found = False
     for row_num in range(9):
         row = p.get_row(row_num)
@@ -202,6 +214,8 @@ def find_hidden_singles(p) -> bool:
 
 
 def find_hidden_doubles(p):
+    print("\nHIDDEN DOUBLES")
+
     def def_val():
         return []
 
@@ -266,6 +280,8 @@ def find_hidden_doubles(p):
 
 
 def find_hidden_triples(p):
+    print("\nHIDDEN TRIPLES")
+
     def def_val():
         return []
 
@@ -325,6 +341,8 @@ def find_hidden_triples(p):
 
 
 def find_hidden_quadruples(p):
+    print("\nHIDDEN QUADRUPLES")
+
     def def_val():
         return []
 
@@ -386,6 +404,8 @@ def find_hidden_quadruples(p):
 ############################################################################
 # OTHER
 def find_inline(p):
+    print("\nINLINE")
+
     def def_val():
         return []
 
@@ -421,4 +441,19 @@ def find_xwing(p):
 
 
 def nishio(p):
-    return
+    if not p.cells_unsolved:
+        return
+    for cell in p.cells.flatten():
+        solved = False
+        if len(cell.notes) == 2:
+            puzzle_snapshot = dcopy(p)
+            vals = list(cell.notes)
+            try:
+                p.update_cell(cell.pos, vals[0])
+                solved = p.solve()
+            except:
+                p = puzzle_snapshot
+                p.update_cell(p[cell.pos].pos, vals[1])
+                solved = p.solve()
+        if solved:
+            return
