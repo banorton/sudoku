@@ -164,6 +164,9 @@ class Puzzle:
             print("\nHIDDEN QUADRUPLES")
             found.append(find_hidden_quadruples(self))
 
+            print("\nINLINE")
+            found.append(find_inline(self))
+
             if not self.cells_unsolved:
                 print("SOLVED!!!!!!!!!")
                 break

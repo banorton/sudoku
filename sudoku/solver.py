@@ -386,7 +386,34 @@ def find_hidden_quadruples(p):
 ############################################################################
 # OTHER
 def find_inline(p):
-    return
+    def def_val():
+        return []
+
+    found = False
+    for row in range(p.puzzle_dim[0]):
+        for col in range(p.puzzle_dim[1]):
+            box, counts = p.boxes[row, col].flatten(), defaultdict(def_val)
+            for cell in box:
+                notes = tuple(cell.notes)
+                for val in notes:
+                    counts[val].append(cell.pos)
+            poss = defaultdict(def_val)
+            for key, value in counts.items():
+                if len(value) == 2:
+                    if value[0][0] == value[1][0]:
+                        found = True
+                        p.del_notes(vals=[key], rows=[value[0][0]], save=value)
+                    elif value[0][1] == value[1][1]:
+                        found = True
+                        p.del_notes(vals=[key], cols=[value[0][1]], save=value)
+                if len(value) == 3:
+                    if value[0][0] == value[1][0] == value[2][0]:
+                        found = True
+                        p.del_notes(vals=[key], rows=[value[0][0]], save=value)
+                    elif value[0][1] == value[1][1] == value[2][1]:
+                        found = True
+                        p.del_notes(vals=[key], cols=[value[0][1]], save=value)
+    return found
 
 
 def find_xwing(p):
