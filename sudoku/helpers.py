@@ -31,15 +31,29 @@ def puzzle_pos_to_box_pos(p, puzzle_pos: tuple) -> tuple:
     return ((box_row, box_col), (cell_row, cell_col))
 
 
+def puzzle_pos_to_box_pos2(puzzle_pos: tuple, box_dim: tuple) -> tuple:
+    box_row = ceil((puzzle_pos[0] + 1) / box_dim[0]) - 1
+    box_col = ceil((puzzle_pos[1] + 1) / box_dim[1]) - 1
+    cell_row = ((puzzle_pos[0] + 1) % box_dim[0]) - 1
+    cell_col = ((puzzle_pos[1] + 1) % box_dim[1]) - 1
+    return ((box_row, box_col), (cell_row, cell_col))
+
+
 def puzzle_pos_to_box_num(p, puzzle_pos: tuple) -> tuple:
     box_pos, cell_pos = puzzle_pos_to_box_pos(puzzle_pos, p.box_dim)
-    test = pos_to_num(box_pos, p.puzzle_dim)
-    return test
+    return pos_to_num(box_pos, p.puzzle_dim)
 
 
-def find_puzzle_pos(p, box_pos: tuple, cell_pos: tuple) -> tuple:
+def find_puzzle_pos(box_dim: tuple, box_pos: tuple, cell_pos: tuple) -> tuple:
     cell_row, cell_col = cell_pos
     box_row, box_col = box_pos
-    puzzle_row = cell_row + box_row * p.box_dim[0]
-    puzzle_col = cell_col + box_col * p.box_dim[1]
+    puzzle_row = cell_row + box_row * box_dim[0]
+    puzzle_col = cell_col + box_col * box_dim[1]
     return (puzzle_row, puzzle_col)
+
+
+def transpose(arr):
+    if not isinstance(arr[0], list):
+        return [[el] for el in arr]
+    else:
+        return list(map(list, (zip(*arr))))

@@ -1,13 +1,15 @@
+# TODO: Optimize the finding algorithms.
+
 import numpy as np
-from .helpers import num_to_pos, puzzle_pos_to_box_pos
-import copy
+from .helpers import *
+from collections import defaultdict
 
 
 def is_valid(p):
     # Check boxs for duplicates.
     for box_num in range(1, 10):
         box_pos = num_to_pos(box_num, p.puzzle_dim)
-        box = p.boxes.arr[box_pos[0]][box_pos[1]]
+        box = p.boxes[box_pos[0]][box_pos[1]]
         box_cells = box.flatten().np
         box_cells = np.delete(box_cells, np.where(box_cells == 0))
         if box_cells.size > np.unique(box_cells).size:
@@ -31,48 +33,141 @@ def is_valid(p):
     return 1
 
 
-def find_naked_singles(p):
+############################################################################
+# NAKED
+def find_naked_singles(p) -> bool:
+    found = False
     for row_num in range(9):
         for col_num in range(9):
-            notes = p.cells.arr[row_num][col_num].notes
+            notes = p.cells[row_num][col_num].notes
             if len(notes) == 1:
                 if p.cells.np[row_num, col_num] == 0:
-                    num = notes.pop()
-                    p.update_cell((row_num, col_num), num)
+                    p.update_cell((row_num, col_num), notes.pop())
+                    found = True
+    return found
 
 
-def find_naked_doubles(p):
+def find_naked_doubles(p) -> bool:
+    def def_val():
+        return []
+
+    found = False
     # Row
     for row_num in range(p.cell_dim[0]):
-        row = p.get_row(row_num)
-        checks = dict()
+        row, checks = p.get_row(row_num), defaultdict(def_val)
         for col_num, cell in enumerate(row):
-            notes = cell.notes
-            pos, notes = (row_num, col_num), tuple(notes)
+            notes = tuple(cell.notes)
             if len(notes) == 2:
-                if notes in checks:
-                    box_pos, _ = puzzle_pos_to_box_pos(p, pos)
-                    p.del_notes(
-                        vals=notes,
-                        rows=[row_num],
-                        cols=[col_num],
-                        boxes=[box_pos],
-                    )
-                else:
-                    checks[tuple(notes)] = True
+                checks[notes].append(cell.pos)
+                if len(checks[notes]) == 2:
+                    found = True
+                    p.del_notes(vals=notes, rows=[row_num], save=checks[notes])
     # Col
+    for col_num in range(p.cell_dim[1]):
+        col, checks = p.get_col(col_num), defaultdict(def_val)
+        for row_num, cell in enumerate(col):
+            notes = tuple(cell.notes)
+            if len(notes) == 2:
+                checks[notes].append(cell.pos)
+                if len(checks[notes]) == 2:
+                    found = True
+                    p.del_notes(vals=notes, cols=[col_num], save=checks[notes])
     # Box
+    for row in range(p.puzzle_dim[0]):
+        for col in range(p.puzzle_dim[1]):
+            box, checks = p.boxes[row, col].flatten(), defaultdict(def_val)
+            for cell in box:
+                notes = tuple(cell.notes)
+                if len(notes) == 2:
+                    checks[notes].append(cell.pos)
+                    if len(checks[notes]) == 2:
+                        found = True
+                        p.del_notes(vals=notes, boxes=[(row, col)], save=checks[notes])
+    return found
 
 
 def find_naked_triples(p):
-    return
+    def def_val():
+        return []
+
+    found = False
+    # Row
+    for row_num in range(p.cell_dim[0]):
+        row, checks = p.get_row(row_num), defaultdict(def_val)
+        for col_num, cell in enumerate(row):
+            notes = tuple(cell.notes)
+            if len(notes) == 3:
+                checks[notes].append(cell.pos)
+                if len(checks[notes]) == 3:
+                    found = True
+                    p.del_notes(vals=notes, rows=[row_num], save=checks[notes])
+    # Col
+    for col_num in range(p.cell_dim[1]):
+        col, checks = p.get_col(col_num), defaultdict(def_val)
+        for row_num, cell in enumerate(col):
+            notes = tuple(cell.notes)
+            if len(notes) == 3:
+                checks[notes].append(cell.pos)
+                if len(checks[notes]) == 3:
+                    found = True
+                    p.del_notes(vals=notes, cols=[col_num], save=checks[notes])
+    # Box
+    for row in range(p.puzzle_dim[0]):
+        for col in range(p.puzzle_dim[1]):
+            box, checks = p.boxes[row, col].flatten(), defaultdict(def_val)
+            for cell in box:
+                notes = tuple(cell.notes)
+                if len(notes) == 3:
+                    checks[notes].append(cell.pos)
+                    if len(checks[notes]) == 3:
+                        found = True
+                        p.del_notes(vals=notes, boxes=[(row, col)], save=checks[notes])
+    return found
 
 
 def find_naked_quadruples(p):
-    return
+    def def_val():
+        return []
+
+    found = False
+    # Row
+    for row_num in range(p.cell_dim[0]):
+        row, checks = p.get_row(row_num), defaultdict(def_val)
+        for col_num, cell in enumerate(row):
+            notes = tuple(cell.notes)
+            if len(notes) == 4:
+                checks[notes].append(cell.pos)
+                if len(checks[notes]) == 4:
+                    found = True
+                    p.del_notes(vals=notes, rows=[row_num], save=checks[notes])
+    # Col
+    for col_num in range(p.cell_dim[1]):
+        col, checks = p.get_col(col_num), defaultdict(def_val)
+        for row_num, cell in enumerate(col):
+            notes = tuple(cell.notes)
+            if len(notes) == 4:
+                checks[notes].append(cell.pos)
+                if len(checks[notes]) == 4:
+                    found = True
+                    p.del_notes(vals=notes, cols=[col_num], save=checks[notes])
+    # Box
+    for row in range(p.puzzle_dim[0]):
+        for col in range(p.puzzle_dim[1]):
+            box, checks = p.boxes[row, col].flatten(), defaultdict(def_val)
+            for cell in box:
+                notes = tuple(cell.notes)
+                if len(notes) == 4:
+                    checks[notes].append(cell.pos)
+                    if len(checks[notes]) == 4:
+                        found = True
+                        p.del_notes(vals=notes, boxes=[(row, col)], save=checks[notes])
+    return found
 
 
-def find_hidden_singles(p):
+############################################################################
+# HIDDEN
+def find_hidden_singles(p) -> bool:
+    found = False
     for row_num in range(9):
         row = p.get_row(row_num)
         for col_num in range(9):
@@ -80,36 +175,223 @@ def find_hidden_singles(p):
             cell = p.get_cell(pos)
             if cell.val != 0:
                 continue
-            col = p.get_col(col_num)
             box_pos, _ = puzzle_pos_to_box_pos(p, pos)
-            box = p.get_box(box_pos)
+            col, box = p.get_col(col_num), p.get_box(box_pos)
 
             row_notes = []
-            for row_cell in row.arr:
+            for row_cell in row:
                 row_notes.extend(list(row_cell.notes))
             col_notes = []
-            for col_cell in col.arr:
+            for col_cell in col:
                 col_notes.extend(list(col_cell.notes))
             box_notes = []
-            for box_cell in box.flatten().arr:
+            for box_cell in box.flatten():
                 box_notes.extend(list(box_cell.notes))
 
             for val in list(cell.notes):
                 if box_notes.count(val) == 1:
                     p.update_cell(pos, val)
+                    found = True
                 elif row_notes.count(val) == 1:
                     p.update_cell(pos, val)
+                    found = True
                 elif col_notes.count(val) == 1:
                     p.update_cell(pos, val)
+                    found = True
+    return found
 
 
 def find_hidden_doubles(p):
-    return
+    def def_val():
+        return []
+
+    found = False
+    # Row
+    for row_num in range(p.cell_dim[0]):
+        row = p.get_row(row_num)
+        counts = defaultdict(def_val)
+        for col_num, cell in enumerate(row):
+            notes = tuple(cell.notes)
+            for val in notes:
+                counts[val].append(cell.pos)
+        poss = dict()
+        for key, value in counts.items():
+            value = tuple(value)
+            if len(value) == 2:
+                if value in poss:
+                    found = True
+                    p.del_notes(vals=[key, poss[value]], rows=[row_num], save=value)
+                    p.del_notes_cell(poss=value, save_vals=[key, poss[value]])
+                else:
+                    poss[value] = key
+    # Col
+    for col_num in range(p.cell_dim[1]):
+        col = p.get_col(col_num)
+        counts = defaultdict(def_val)
+        for row_num, cell in enumerate(col):
+            notes = tuple(cell.notes)
+            for val in notes:
+                counts[val].append(cell.pos)
+        poss = dict()
+        for key, value in counts.items():
+            value = tuple(value)
+            if len(value) == 2:
+                if value in poss:
+                    found = True
+                    p.del_notes(vals=[key, poss[value]], cols=[col_num], save=value)
+                    p.del_notes_cell(poss=value, save_vals=[key, poss[value]])
+                else:
+                    poss[value] = key
+    # Box
+    for row in range(p.puzzle_dim[0]):
+        for col in range(p.puzzle_dim[1]):
+            box, counts = p.boxes[row, col].flatten(), defaultdict(def_val)
+            for cell in box:
+                notes = tuple(cell.notes)
+                for val in notes:
+                    counts[val].append(cell.pos)
+            poss = dict()
+            for key, value in counts.items():
+                value = tuple(value)
+                if len(value) == 2:
+                    if value in poss:
+                        found = True
+                        p.del_notes(
+                            vals=[key, poss[value]], boxes=[(row, col)], save=value
+                        )
+                        p.del_notes_cell(poss=value, save_vals=[key, poss[value]])
+                    else:
+                        poss[value] = key
+    return found
 
 
 def find_hidden_triples(p):
-    return
+    def def_val():
+        return []
+
+    found = False
+    # Row
+    for row_num in range(p.cell_dim[0]):
+        row = p.get_row(row_num)
+        counts = defaultdict(def_val)
+        for col_num, cell in enumerate(row):
+            notes = tuple(cell.notes)
+            for val in notes:
+                counts[val].append(cell.pos)
+        poss = defaultdict(def_val)
+        for key, value in counts.items():
+            value = tuple(value)
+            if len(value) == 3:
+                poss[value].append(key)
+                if value in poss and len(poss[value]) == 3:
+                    found = True
+                    p.del_notes(vals=poss[value], rows=[row_num], save=value)
+                    p.del_notes_cell(poss=value, save_vals=poss[value])
+    # Col
+    for col_num in range(p.cell_dim[1]):
+        col = p.get_col(col_num)
+        counts = defaultdict(def_val)
+        for row_num, cell in enumerate(col):
+            notes = tuple(cell.notes)
+            for val in notes:
+                counts[val].append(cell.pos)
+        poss = defaultdict(def_val)
+        for key, value in counts.items():
+            value = tuple(value)
+            if len(value) == 3:
+                poss[value].append(key)
+                if value in poss and len(poss[value]) == 3:
+                    found = True
+                    p.del_notes(vals=poss[value], cols=[col_num], save=value)
+                    p.del_notes_cell(poss=value, save_vals=poss[value])
+    # # Box
+    for row in range(p.puzzle_dim[0]):
+        for col in range(p.puzzle_dim[1]):
+            box, counts = p.boxes[row, col].flatten(), defaultdict(def_val)
+            for cell in box:
+                notes = tuple(cell.notes)
+                for val in notes:
+                    counts[val].append(cell.pos)
+            poss = defaultdict(def_val)
+            for key, value in counts.items():
+                value = tuple(value)
+                if len(value) == 3:
+                    poss[value].append(key)
+                    if value in poss and len(poss[value]) == 3:
+                        found = True
+                        p.del_notes(vals=poss[value], boxes=[(row, col)], save=value)
+                        p.del_notes_cell(poss=value, save_vals=poss[value])
+    return found
 
 
 def find_hidden_quadruples(p):
+    def def_val():
+        return []
+
+    found = False
+    # Row
+    for row_num in range(p.cell_dim[0]):
+        row = p.get_row(row_num)
+        counts = defaultdict(def_val)
+        for col_num, cell in enumerate(row):
+            notes = tuple(cell.notes)
+            for val in notes:
+                counts[val].append(cell.pos)
+        poss = defaultdict(def_val)
+        for key, value in counts.items():
+            value = tuple(value)
+            if len(value) == 4:
+                poss[value].append(key)
+                if value in poss and len(poss[value]) == 4:
+                    found = True
+                    p.del_notes(vals=poss[value], rows=[row_num], save=value)
+                    p.del_notes_cell(poss=value, save_vals=poss[value])
+    # Col
+    for col_num in range(p.cell_dim[1]):
+        col = p.get_col(col_num)
+        counts = defaultdict(def_val)
+        for row_num, cell in enumerate(col):
+            notes = tuple(cell.notes)
+            for val in notes:
+                counts[val].append(cell.pos)
+        poss = defaultdict(def_val)
+        for key, value in counts.items():
+            value = tuple(value)
+            if len(value) == 4:
+                poss[value].append(key)
+                if value in poss and len(poss[value]) == 4:
+                    found = True
+                    p.del_notes(vals=poss[value], cols=[col_num], save=value)
+                    p.del_notes_cell(poss=value, save_vals=poss[value])
+    # # Box
+    for row in range(p.puzzle_dim[0]):
+        for col in range(p.puzzle_dim[1]):
+            box, counts = p.boxes[row, col].flatten(), defaultdict(def_val)
+            for cell in box:
+                notes = tuple(cell.notes)
+                for val in notes:
+                    counts[val].append(cell.pos)
+            poss = defaultdict(def_val)
+            for key, value in counts.items():
+                value = tuple(value)
+                if len(value) == 4:
+                    poss[value].append(key)
+                    if value in poss and len(poss[value]) == 4:
+                        found = True
+                        p.del_notes(vals=poss[value], boxes=[(row, col)], save=value)
+                        p.del_notes_cell(poss=value, save_vals=poss[value])
+    return found
+
+
+############################################################################
+# OTHER
+def find_inline(p):
+    return
+
+
+def find_xwing(p):
+    return
+
+
+def nishio(p):
     return

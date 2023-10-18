@@ -23,6 +23,12 @@ class Puzzle:
         if not (vals is None):
             self._assign_vals(vals)
 
+    def __getitem__(self, pos):
+        return self.cells.__getitem__(pos)
+
+    def __iter__(self):
+        yield from self.cells
+
     def __str__(self):
         puzzle_str = ""
         for row_num in range(self.cell_dim[0]):
@@ -48,17 +54,17 @@ class Puzzle:
     def _assign_vals(self, vals):
         if not isinstance(vals, np.ndarray):
             vals = np.array(vals)
-        vals = np.reshape(vals, self.cell_dim)
+        vals = np.reshape(vals, self.cell_dim).tolist()
         for m in range(self.cell_dim[0]):
             for n in range(self.cell_dim[1]):
-                self.update_cell((m, n), vals[m, n])
+                self.update_cell((m, n), vals[m][n])
 
     def load(self, vals):
         self._assign_vals(vals)
 
     def get_cell(self, pos: tuple):
         row, col = pos
-        return self.cells.arr[row][col]
+        return self.cells[row][col]
 
     def get_row(self, row_num: int):
         return self.cells.get_row(row_num)
@@ -68,59 +74,38 @@ class Puzzle:
 
     def get_box(self, pos: int):
         row, col = pos
-        return self.boxes.arr[row][col]
+        return self.boxes[row][col]
 
     def update_cell(self, pos: tuple, val: int, propagate=True):
         if val == 0:
             return
-        test1, test2 = pos
         print(f"UPDATING {pos} : {val}")
         self.cells_unsolved -= 1
-        box_pos, cell_pos = puzzle_pos_to_box_pos(self, pos)
+        box_pos, _ = puzzle_pos_to_box_pos(self, pos)
         i, j = pos
-        a, b = box_pos
-        m, n = cell_pos
-        self.cells.arr[i][j].val = val
-        self.cells.arr[i][j].notes = {val}
-
-        # Make sure numpy arrays match the lists.
-        self.cells.np[i, j] = val
-        self.boxes.arr[a][b].np[m, n] = val
+        self[i, j].val = val
+        self[i, j].notes = {val}
 
         if propagate:
             row, col = pos
-            self.del_notes(val, rows=[row], cols=[col], boxes=[box_pos], save=pos)
-
-        if not self.cells_unsolved:
-            print("SOLVED!!!!!!!!!")
+            self.del_notes(
+                vals=[val], rows=[row], cols=[col], boxes=[box_pos], save=[pos]
+            )
 
         if not is_valid(self):
             raise Exception("Not valid.")
 
-    def del_notes(self, vals, rows=[], cols=[], boxes=[], positions=[], save=tuple()):
-        if isinstance(vals, tuple) or isinstance(vals, list):
-            for val in vals:
-                for row_num in rows:
-                    self.del_notes_row(val, row_num)
-                for col_num in cols:
-                    self.del_notes_col(val, col_num)
-                for box_pos in boxes:
-                    self.del_notes_box(val, box_pos)
-                for pos in positions:
-                    self.del_notes_pos(val, pos)
-                if save:
-                    self.cells.arr[save[0]][save[1]].notes.add(val)
-        else:
+    def del_notes(self, vals=[], rows=[], cols=[], boxes=[], positions=[], save=[]):
+        for val in vals:
             for row_num in rows:
-                self.del_notes_row(vals, row_num)
+                self.del_notes_row(val, row_num)
             for col_num in cols:
-                self.del_notes_col(vals, col_num)
+                self.del_notes_col(val, col_num)
             for box_pos in boxes:
-                self.del_notes_box(vals, box_pos)
-            for pos in positions:
-                self.del_notes_pos(vals, pos)
+                self.del_notes_box(val, box_pos)
             if save:
-                self.cells.arr[save[0]][save[1]].notes.add(vals)
+                for pos in save:
+                    self.cells[pos[0]][pos[1]].notes.add(val)
 
     def del_notes_row(self, val, row_num):
         self.cells.get_row(row_num).del_notes(val)
@@ -132,26 +117,55 @@ class Puzzle:
 
     def del_notes_box(self, val, box_pos):
         m, n = box_pos
-        box = self.boxes.arr[m][n]
+        box = self.boxes[m][n]
         box.del_notes(val)
         print("del box: ", box_pos, " val: ", val)
 
-    def del_notes_pos(self, val, pos):
-        pass
+    def del_notes_cell(self, poss=[], vals=[], save_vals=[]):
+        for pos in poss:
+            if not vals:
+                self[pos].notes = set()
+            else:
+                for val in vals:
+                    self[pos].notes.discard(val)
+            for val in save_vals:
+                self[pos].notes.add(val)
+        print(f"del cell: {poss}, val: {vals}, save: {save_vals}")
 
     def solve(self):
         if not is_valid(self):
             print("Not a valid puzzle.")
 
-        for _ in range(5):
-            print("NAKED SINGLES")
-            find_naked_singles(self)
-            print()
-            print("HIDDEN SINGLES")
-            find_hidden_singles(self)
-            print()
-            # print("NAKED DOUBLES")
-            # find_naked_doubles(self)
-            # print()
+        found = [1]
+        ct = 0
+        while any(found) and ct < 20:
+            found = []
+            print("\nNAKED SINGLES")
+            found.append(find_naked_singles(self))
+
+            print("\nHIDDEN SINGLES")
+            found.append(find_hidden_singles(self))
+
+            print("\nNAKED DOUBLES")
+            found.append(find_naked_doubles(self))
+
+            print("\nHIDDEN DOUBLES")
+            found.append(find_hidden_doubles(self))
+
+            print("\nNAKED TRIPLES")
+            found.append(find_naked_triples(self))
+
+            print("\nHIDDEN TRIPLES")
+            found.append(find_hidden_triples(self))
+
+            print("\nNAKED QUADRUPLES")
+            found.append(find_naked_quadruples(self))
+
+            print("\nHIDDEN QUADRUPLES")
+            found.append(find_hidden_quadruples(self))
+
             if not self.cells_unsolved:
+                print("SOLVED!!!!!!!!!")
                 break
+
+            ct += 1
