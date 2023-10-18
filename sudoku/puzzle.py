@@ -103,8 +103,6 @@ class Puzzle:
                 self.del_notes_col(val, col_num)
             for box_pos in boxes:
                 self.del_notes_box(val, box_pos)
-            for pos in positions:
-                self.del_notes_pos(val, pos)
             if save:
                 for pos in save:
                     self.cells[pos[0]][pos[1]].notes.add(val)
@@ -123,15 +121,24 @@ class Puzzle:
         box.del_notes(val)
         print("del box: ", box_pos, " val: ", val)
 
-    def del_notes_pos(self, val, pos):
-        pass
+    def del_notes_cell(self, poss=[], vals=[], save_vals=[]):
+        for pos in poss:
+            if not vals:
+                self[pos].notes = set()
+            else:
+                for val in vals:
+                    self[pos].notes.discard(val)
+            for val in save_vals:
+                self[pos].notes.add(val)
+        print(f"del cell: {poss}, val: {vals}, save: {save_vals}")
 
     def solve(self):
         if not is_valid(self):
             print("Not a valid puzzle.")
 
         found = [1]
-        while any(found):
+        ct = 0
+        while any(found) and ct < 20:
             found = []
             print("\nNAKED SINGLES")
             found.append(find_naked_singles(self))
@@ -145,6 +152,20 @@ class Puzzle:
             print("\nHIDDEN DOUBLES")
             found.append(find_hidden_doubles(self))
 
+            print("\nNAKED TRIPLES")
+            found.append(find_naked_triples(self))
+
+            print("\nHIDDEN TRIPLES")
+            found.append(find_hidden_triples(self))
+
+            print("\nNAKED QUADRUPLES")
+            found.append(find_naked_quadruples(self))
+
+            print("\nHIDDEN QUADRUPLES")
+            found.append(find_hidden_quadruples(self))
+
             if not self.cells_unsolved:
                 print("SOLVED!!!!!!!!!")
                 break
+
+            ct += 1

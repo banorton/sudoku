@@ -52,7 +52,7 @@ def find_puzzle_pos(box_dim: tuple, box_pos: tuple, cell_pos: tuple) -> tuple:
     return (puzzle_row, puzzle_col)
 
 
-def transpose(arr: list) -> tuple:
+def transpose(arr):
     if not isinstance(arr[0], list):
         return [[el] for el in arr]
     else:

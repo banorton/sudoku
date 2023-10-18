@@ -18,6 +18,8 @@ class Array:
         res = None
         if isinstance(pos, int):
             res = self.arr[pos]
+        elif isinstance(pos, tuple):
+            res = self.arr[pos[0]][pos[1]]
         elif pos[0] == slice(None, None, None) and isinstance(pos[1], int):
             res = self.T[pos[1]]
         elif isinstance(pos[0], int) and pos[1] == slice(None, None, None):
