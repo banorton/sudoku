@@ -84,6 +84,8 @@ def find_naked_general(p, num):
     for row_num in range(p.cell_dim[0]):
         row, checks = p.get_row(row_num), defaultdict(def_val)
         for col_num, cell in enumerate(row):
+            if cell.val != 0:
+                continue
             notes = tuple(cell.notes)
             if len(notes) == num:
                 checks[notes].append(cell.pos)
@@ -94,6 +96,8 @@ def find_naked_general(p, num):
     for col_num in range(p.cell_dim[1]):
         col, checks = p.get_col(col_num), defaultdict(def_val)
         for row_num, cell in enumerate(col):
+            if cell.val != 0:
+                continue
             notes = tuple(cell.notes)
             if len(notes) == num:
                 checks[notes].append(cell.pos)
@@ -105,6 +109,8 @@ def find_naked_general(p, num):
         for col in range(p.puzzle_dim[1]):
             box, checks = p.boxes[row, col].flatten(), defaultdict(def_val)
             for cell in box:
+                if cell.val != 0:
+                    continue
                 notes = tuple(cell.notes)
                 if len(notes) == num:
                     checks[notes].append(cell.pos)
@@ -155,6 +161,7 @@ def find_hidden_general(p, num):
         return []
 
     changes = ""
+    changes_cells = ""
     # Row
     for row_num in range(p.cell_dim[0]):
         row = p.get_row(row_num)
@@ -170,9 +177,11 @@ def find_hidden_general(p, num):
                 poss[value].append(key)
                 if value in poss and len(poss[value]) == num:
                     p.del_notes(vals=poss[value], rows=[row_num], save=value)
-                    changes += f"Del Notes: row {row_num}, vals {[key, poss[value]]}, save {value}\n"
+                    changes += (
+                        f"Del Notes: row {row_num}, vals {poss[value]}, save {value}\n"
+                    )
                     p.del_notes_cell(poss=value, save_vals=poss[value])
-                    changes += f"Del Notes: cells {value}, save {[key, poss[value]]}\n"
+                    changes_cells += f"Del Notes: cells {value}, save {poss[value]}\n"
     # Col
     for col_num in range(p.cell_dim[1]):
         col = p.get_col(col_num)
@@ -189,9 +198,11 @@ def find_hidden_general(p, num):
                 if value in poss and len(poss[value]) == num:
                     found = True
                     p.del_notes(vals=poss[value], cols=[col_num], save=value)
-                    changes += f"Del Notes: col {col_num}, vals {[key, poss[value]]}, save {value}\n"
+                    changes += (
+                        f"Del Notes: col {col_num}, vals {poss[value]}, save {value}\n"
+                    )
                     p.del_notes_cell(poss=value, save_vals=poss[value])
-                    changes += f"Del Notes: cells {value}, save {[key, poss[value]]}\n"
+                    changes_cells += f"Del Notes: cells {value}, save {poss[value]}\n"
     # # Box
     for row in range(p.puzzle_dim[0]):
         for col in range(p.puzzle_dim[1]):
@@ -208,12 +219,12 @@ def find_hidden_general(p, num):
                     if value in poss and len(poss[value]) == num:
                         found = True
                         p.del_notes(vals=poss[value], boxes=[(row, col)], save=value)
-                        changes += f"Del Notes: box {(row, col)}, vals {[key, poss[value]]}, save {value}\n"
+                        changes += f"Del Notes: box {(row, col)}, vals {poss[value]}, save {value}\n"
                         p.del_notes_cell(poss=value, save_vals=poss[value])
-                        changes += (
-                            f"Del Notes: cells {value}, save {[key, poss[value]]}\n"
+                        changes_cells += (
+                            f"Del Notes: cells {value}, save {poss[value]}\n"
                         )
-    return changes
+    return changes + changes_cells
 
 
 ############################################################################
