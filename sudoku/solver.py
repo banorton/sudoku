@@ -93,7 +93,7 @@ def find_naked_general(p, num):
                     if notes in p.checked[num]:
                         continue
                     else:
-                        p.checked[num][notes].append(cell.pos)
+                        p.checked[num][tuple(checks[notes])].extend(notes)
                     p.del_notes(vals=notes, rows=[row_num], save=checks[notes])
                     changes += f"Del Notes: row {row_num}, vals {notes}, save {checks[notes]}\n"
     # Col
@@ -109,7 +109,7 @@ def find_naked_general(p, num):
                     if notes in p.checked[num]:
                         continue
                     else:
-                        p.checked[num][notes].append(cell.pos)
+                        p.checked[num][tuple(checks[notes])].extend(notes)
                     p.del_notes(vals=notes, cols=[col_num], save=checks[notes])
                     changes += f"Del Notes: col {col_num}, vals {notes}, save {checks[notes]}\n"
     # Box
@@ -126,7 +126,7 @@ def find_naked_general(p, num):
                         if notes in p.checked[num]:
                             continue
                         else:
-                            p.checked[num][notes].append(cell.pos)
+                            p.checked[num][tuple(checks[notes])].extend(notes)
                         p.del_notes(vals=notes, boxes=[(row, col)], save=checks[notes])
                         changes += f"Del Notes: box {(row, col)}, vals {notes}, save {checks[notes]}\n"
     return changes
