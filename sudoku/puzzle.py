@@ -1,5 +1,5 @@
 import numpy as np
-from .solver import std_solve, is_valid
+from .solver import std_solve, is_valid, nishio
 from .helpers import puzzle_pos_to_box_pos, num_to_pos, puzzle_pos_to_box_num
 from .box import Box_Array
 from collections import defaultdict
@@ -138,5 +138,12 @@ class Puzzle:
 
     def solve(self):
         solved = std_solve(self)
-        # if not solved:
-        #     nishio(self)
+        if not solved:
+            nishio(self)
+        print("SOLVED")
+
+    def copy(self, p):
+        self.cells_unsolved = p.cells_unsolved
+        self.boxes = p.boxes
+        self.cells = p.cells
+        self.checked = p.checked

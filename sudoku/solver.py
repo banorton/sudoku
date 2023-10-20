@@ -42,7 +42,7 @@ def std_solve(p) -> bool:
         return True
 
     ct = 0
-    while ct < 20:
+    while ct < 10:
         find_naked_singles(p)
         find_hidden_singles(p)
         find_inline(p)
@@ -53,10 +53,39 @@ def std_solve(p) -> bool:
         find_naked_quadruples(p)
         find_hidden_quadruples(p)
         if not p.cells_unsolved:
-            print("SOLVED")
             return True
         ct += 1
     return False
+
+
+def nishio(p):
+    for cell in p.cells.flatten():
+        if not p.cells_unsolved:
+            return
+        solved = False
+        if len(cell.notes) == 2:
+            vals = list(cell.notes)
+            puzzle_snapshot = dcopy(p)
+            try:
+                p.update_cell(cell.pos, vals[0])
+                changes = f"NISHIO\nUpdate Cell: {cell.pos}, {vals[0]}\n"
+                print(changes)
+                solved = std_solve(p)
+                if solved:
+                    return
+                else:
+                    nishio(p)
+            except Exception as e:
+                print(f"NISHIO BRANCH FAIL")
+                p.copy(puzzle_snapshot)
+                p.update_cell(p[cell.pos].pos, vals[1])
+                changes = f"NISHIO\nUpdate Cell: {cell.pos}, {vals[0]}\n"
+                print(changes)
+                solved = std_solve(p)
+                if solved:
+                    return
+                else:
+                    nishio(p)
 
 
 ############################################################################
@@ -359,22 +388,3 @@ def find_inline(p, prnt=True):
 
 def find_xwing(p):
     return
-
-
-def nishio(p):
-    if not p.cells_unsolved:
-        return
-    for cell in p.cells.flatten():
-        solved = False
-        if len(cell.notes) == 2:
-            puzzle_snapshot = dcopy(p)
-            vals = list(cell.notes)
-            try:
-                p.update_cell(cell.pos, vals[0])
-                solved = p.solve()
-            except:
-                p = puzzle_snapshot
-                p.update_cell(p[cell.pos].pos, vals[1])
-                solved = p.solve()
-        if solved:
-            return
