@@ -68,21 +68,29 @@ def nishio(p):
             puzzle_snapshot = dcopy(p)
             try:
                 p.update_cell(cell.pos, vals[0])
-                changes = f"NISHIO\nUpdate Cell: {cell.pos}, {vals[0]}\n"
+                changes = "######################################################################\n"
+                changes += f"NISHIO\nUpdate Cell: {cell.pos}, {vals[0]}\n"
                 print(changes)
                 solved = std_solve(p)
                 if solved:
+                    print(
+                        "######################################################################"
+                    )
                     return
                 else:
                     nishio(p)
-            except Exception as e:
+            except:
                 print(f"NISHIO BRANCH FAIL")
                 p.copy(puzzle_snapshot)
                 p.update_cell(p[cell.pos].pos, vals[1])
-                changes = f"NISHIO\nUpdate Cell: {cell.pos}, {vals[0]}\n"
+                changes = "######################################################################\n"
+                changes += f"NISHIO\nUpdate Cell: {cell.pos}, {vals[1]}\n"
                 print(changes)
                 solved = std_solve(p)
                 if solved:
+                    print(
+                        "######################################################################"
+                    )
                     return
                 else:
                     nishio(p)
@@ -119,11 +127,13 @@ def find_naked_general(p, num):
             if len(notes) == num:
                 checks[notes].append(cell.pos)
                 if len(checks[notes]) == num:
-                    if notes in p.checked[num]:
+                    if tuple(checks[notes]) in p.checked[num]:
                         continue
                     else:
                         p.checked[num][tuple(checks[notes])].extend(notes)
                     p.del_notes(vals=notes, rows=[row_num], save=checks[notes])
+                    if row_num == 4 and num == 3:
+                        print()
                     changes += f"Del Notes: row {row_num}, vals {notes}, save {checks[notes]}\n"
     # Col
     for col_num in range(p.cell_dim[1]):
@@ -135,7 +145,7 @@ def find_naked_general(p, num):
             if len(notes) == num:
                 checks[notes].append(cell.pos)
                 if len(checks[notes]) == num:
-                    if notes in p.checked[num]:
+                    if tuple(checks[notes]) in p.checked[num]:
                         continue
                     else:
                         p.checked[num][tuple(checks[notes])].extend(notes)
@@ -152,7 +162,7 @@ def find_naked_general(p, num):
                 if len(notes) == num:
                     checks[notes].append(cell.pos)
                     if len(checks[notes]) == num:
-                        if notes in p.checked[num]:
+                        if tuple(checks[notes]) in p.checked[num]:
                             continue
                         else:
                             p.checked[num][tuple(checks[notes])].extend(notes)
