@@ -86,10 +86,14 @@ def find_naked_general(p, num):
         for col_num, cell in enumerate(row):
             if cell.val != 0:
                 continue
-            notes = tuple(cell.notes)
+            notes = tuple(sorted(cell.notes))
             if len(notes) == num:
                 checks[notes].append(cell.pos)
                 if len(checks[notes]) == num:
+                    if notes in p.checked[num]:
+                        continue
+                    else:
+                        p.checked[num][notes].append(cell.pos)
                     p.del_notes(vals=notes, rows=[row_num], save=checks[notes])
                     changes += f"Del Notes: row {row_num}, vals {notes}, save {checks[notes]}\n"
     # Col
@@ -98,10 +102,14 @@ def find_naked_general(p, num):
         for row_num, cell in enumerate(col):
             if cell.val != 0:
                 continue
-            notes = tuple(cell.notes)
+            notes = tuple(sorted(cell.notes))
             if len(notes) == num:
                 checks[notes].append(cell.pos)
                 if len(checks[notes]) == num:
+                    if notes in p.checked[num]:
+                        continue
+                    else:
+                        p.checked[num][notes].append(cell.pos)
                     p.del_notes(vals=notes, cols=[col_num], save=checks[notes])
                     changes += f"Del Notes: col {col_num}, vals {notes}, save {checks[notes]}\n"
     # Box
@@ -111,10 +119,14 @@ def find_naked_general(p, num):
             for cell in box:
                 if cell.val != 0:
                     continue
-                notes = tuple(cell.notes)
+                notes = tuple(sorted(cell.notes))
                 if len(notes) == num:
                     checks[notes].append(cell.pos)
                     if len(checks[notes]) == num:
+                        if notes in p.checked[num]:
+                            continue
+                        else:
+                            p.checked[num][notes].append(cell.pos)
                         p.del_notes(vals=notes, boxes=[(row, col)], save=checks[notes])
                         changes += f"Del Notes: box {(row, col)}, vals {notes}, save {checks[notes]}\n"
     return changes
@@ -167,7 +179,7 @@ def find_hidden_general(p, num):
         row = p.get_row(row_num)
         counts = defaultdict(def_val)
         for col_num, cell in enumerate(row):
-            notes = tuple(cell.notes)
+            notes = tuple(sorted(cell.notes))
             for val in notes:
                 counts[val].append(cell.pos)
         poss = defaultdict(def_val)
@@ -176,6 +188,10 @@ def find_hidden_general(p, num):
             if len(value) == num:
                 poss[value].append(key)
                 if value in poss and len(poss[value]) == num:
+                    if value in p.checked[num]:
+                        continue
+                    else:
+                        p.checked[num][value].append(key)
                     p.del_notes(vals=poss[value], rows=[row_num], save=value)
                     changes += (
                         f"Del Notes: row {row_num}, vals {poss[value]}, save {value}\n"
@@ -187,7 +203,7 @@ def find_hidden_general(p, num):
         col = p.get_col(col_num)
         counts = defaultdict(def_val)
         for row_num, cell in enumerate(col):
-            notes = tuple(cell.notes)
+            notes = tuple(sorted(cell.notes))
             for val in notes:
                 counts[val].append(cell.pos)
         poss = defaultdict(def_val)
@@ -196,19 +212,22 @@ def find_hidden_general(p, num):
             if len(value) == num:
                 poss[value].append(key)
                 if value in poss and len(poss[value]) == num:
-                    found = True
+                    if value in p.checked[num]:
+                        continue
+                    else:
+                        p.checked[num][value].append(key)
                     p.del_notes(vals=poss[value], cols=[col_num], save=value)
                     changes += (
                         f"Del Notes: col {col_num}, vals {poss[value]}, save {value}\n"
                     )
                     p.del_notes_cell(poss=value, save_vals=poss[value])
                     changes_cells += f"Del Notes: cells {value}, save {poss[value]}\n"
-    # # Box
+    # Box
     for row in range(p.puzzle_dim[0]):
         for col in range(p.puzzle_dim[1]):
             box, counts = p.boxes[row, col].flatten(), defaultdict(def_val)
             for cell in box:
-                notes = tuple(cell.notes)
+                notes = tuple(sorted(cell.notes))
                 for val in notes:
                     counts[val].append(cell.pos)
             poss = defaultdict(def_val)
@@ -217,7 +236,10 @@ def find_hidden_general(p, num):
                 if len(value) == num:
                     poss[value].append(key)
                     if value in poss and len(poss[value]) == num:
-                        found = True
+                        if value in p.checked[num]:
+                            continue
+                        else:
+                            p.checked[num][value].append(key)
                         p.del_notes(vals=poss[value], boxes=[(row, col)], save=value)
                         changes += f"Del Notes: box {(row, col)}, vals {poss[value]}, save {value}\n"
                         p.del_notes_cell(poss=value, save_vals=poss[value])
@@ -306,7 +328,7 @@ def find_inline(p, prnt=True):
         for col in range(p.puzzle_dim[1]):
             box, counts = p.boxes[row, col].flatten(), defaultdict(def_val)
             for cell in box:
-                notes = tuple(cell.notes)
+                notes = tuple(sorted(cell.notes))
                 for val in notes:
                     counts[val].append(cell.pos)
             poss = defaultdict(def_val)

@@ -1,7 +1,8 @@
 import numpy as np
-from .solver import *
+from .solver import std_solve, is_valid
 from .helpers import puzzle_pos_to_box_pos, num_to_pos, puzzle_pos_to_box_num
 from .box import Box_Array
+from collections import defaultdict
 
 
 class Puzzle:
@@ -20,6 +21,14 @@ class Puzzle:
         self.cells_unsolved = self.cell_dim[0] * self.cell_dim[1]
         self.boxes = Box_Array(puzzle_dim, box_dim)
         self.cells = self.boxes.to_cell_arr()
+
+        def def_val_list():
+            return []
+
+        def def_val_dict():
+            return defaultdict(def_val_list)
+
+        self.checked = defaultdict(def_val_dict)
         if not (vals is None):
             self._assign_vals(vals)
 
