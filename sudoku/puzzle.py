@@ -1,6 +1,6 @@
 import numpy as np
 from .solver import std_solve, is_valid, nishio
-from .helpers import puzzle_pos_to_box_pos, num_to_pos, puzzle_pos_to_box_num
+from .helpers import puzzle_pos_to_box_pos
 from .box import Box_Array
 from collections import defaultdict
 

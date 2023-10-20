@@ -69,7 +69,7 @@ def nishio(p):
             try:
                 p.update_cell(cell.pos, vals[0])
                 changes = "######################################################################\n"
-                changes += f"NISHIO\nUpdate Cell: {cell.pos}, {vals[0]}\n"
+                changes += f"NISHIO METHOD\nUpdate Cell: {cell.pos}, {vals[0]}\n"
                 print(changes)
                 solved = std_solve(p)
                 if solved:
@@ -80,11 +80,11 @@ def nishio(p):
                 else:
                     nishio(p)
             except:
-                print(f"NISHIO BRANCH FAIL")
+                print(f"NISHIO METHOD BRANCH FAIL\n")
                 p.copy(puzzle_snapshot)
                 p.update_cell(p[cell.pos].pos, vals[1])
                 changes = "######################################################################\n"
-                changes += f"NISHIO\nUpdate Cell: {cell.pos}, {vals[1]}\n"
+                changes += f"NISHIO METHOD\nUpdate Cell: {cell.pos}, {vals[1]}\n"
                 print(changes)
                 solved = std_solve(p)
                 if solved:
