@@ -17,13 +17,7 @@ class Puzzle:
         self.boxes = Box_Array(self.puzzle_dim, self.box_dim)
         self.cells = self.boxes.to_cell_arr()
 
-        def def_val_list():
-            return []
-
-        def def_val_dict():
-            return defaultdict(def_val_list)
-
-        self.checked = defaultdict(def_val_dict)
+        self.checked = defaultdict(lambda: defaultdict(lambda: []))
         if not (vals is None):
             self._assign_vals(vals)
 

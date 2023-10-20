@@ -6,24 +6,20 @@ from copy import deepcopy as dcopy
 
 def is_valid(p) -> bool:
     # Check boxs for duplicates.
-    for box_num in range(1, 10):
-        box_pos = num_to_pos(box_num, p.puzzle_dim)
-        box = p.boxes[box_pos[0]][box_pos[1]]
-        box_cells = box.flatten().np
-        box_cells = np.delete(box_cells, np.where(box_cells == 0))
-        if box_cells.size > np.unique(box_cells).size:
+    for box in p.boxes.flatten():
+        box = box.np.flatten()
+        box = np.delete(box, np.where(box == 0))
+        if box.size > np.unique(box).size:
             return False
 
     # Check rows for duplicates.
-    for row_num in range(9):
-        row = p.cells.get_row(row_num).np
+    for row in p.cells.np:
         row = np.delete(row, np.where(row == 0))
         if row.size > np.unique(row).size:
             return False
 
     # Check columns for duplicates.
-    for col_num in range(9):
-        col = p.cells.get_col(col_num).np
+    for col in p.cells.np.T:
         col = np.delete(col, np.where(col == 0))
         if col.size > np.unique(col).size:
             return False
@@ -151,29 +147,36 @@ def find_hidden_general(p, num):
     assert num > 0
     if num == 1:
         changes = ""
-        for cell in p.cells.flatten():
-            if cell.val != 0:
-                continue
-            box_pos, _ = puzzle_pos_to_box_pos(p, cell.pos)
-            row = p.get_row(cell.pos[0])
-            col = p.get_col(cell.pos[1])
-            box = p.get_box(box_pos).flatten()
+        for row in p.cells:
+            for cell in row:
+                if cell.val != 0:
+                    continue
+                col = p.cells.T[cell.pos[1]]
+                box = p.get_box(cell.box_pos).flatten()
 
-            row_notes, col_notes, box_notes = [], [], []
-            [row_notes.extend(row_cell.notes) for row_cell in row]
-            [col_notes.extend(col_cell.notes) for col_cell in col]
-            [box_notes.extend(box_cell.notes) for box_cell in box]
+                row_notes, col_notes, box_notes = (
+                    defaultdict(lambda: 0),
+                    defaultdict(lambda: 0),
+                    defaultdict(lambda: 0),
+                )
+                for rcell, ccell, bcell in zip(row, col, box):
+                    for r in rcell.notes:
+                        row_notes[r] += 1
+                    for c in ccell.notes:
+                        col_notes[c] += 1
+                    for b in bcell.notes:
+                        box_notes[b] += 1
 
-            for val in cell.notes:
-                if box_notes.count(val) == 1:
-                    p.update_cell(cell.pos, val)
-                    changes += f"Update Cell: {cell.pos}, {val}\n"
-                elif row_notes.count(val) == 1:
-                    p.update_cell(cell.pos, val)
-                    changes += f"Update Cell: {cell.pos}, {val}\n"
-                elif col_notes.count(val) == 1:
-                    p.update_cell(cell.pos, val)
-                    changes += f"Update Cell: {cell.pos}, {val}\n"
+                for val in cell.notes:
+                    if row_notes[val] == 1:
+                        p.update_cell(cell.pos, val)
+                        changes += f"Update Cell: {cell.pos}, {val}\n"
+                    elif col_notes[val] == 1:
+                        p.update_cell(cell.pos, val)
+                        changes += f"Update Cell: {cell.pos}, {val}\n"
+                    elif box_notes[val] == 1:
+                        p.update_cell(cell.pos, val)
+                        changes += f"Update Cell: {cell.pos}, {val}\n"
         return changes
 
     changes = ""
