@@ -1,15 +1,16 @@
 import numpy as np
-from .solver import *
+from .solver import std_solve, is_valid
 from .helpers import puzzle_pos_to_box_pos, num_to_pos, puzzle_pos_to_box_num
 from .box import Box_Array
+from collections import defaultdict
 
 
 class Puzzle:
     def __init__(
         self,
         vals=None,
-        puzzle_dim: tuple = (3, 3),
-        box_dim: tuple = (3, 3),
+        puzzle_dim=(3, 3),
+        box_dim=(3, 3),
     ):
         self.puzzle_dim = puzzle_dim
         self.box_dim = box_dim
@@ -20,6 +21,14 @@ class Puzzle:
         self.cells_unsolved = self.cell_dim[0] * self.cell_dim[1]
         self.boxes = Box_Array(puzzle_dim, box_dim)
         self.cells = self.boxes.to_cell_arr()
+
+        def def_val_list():
+            return []
+
+        def def_val_dict():
+            return defaultdict(def_val_list)
+
+        self.checked = defaultdict(def_val_dict)
         if not (vals is None):
             self._assign_vals(vals)
 
@@ -79,7 +88,6 @@ class Puzzle:
     def update_cell(self, pos: tuple, val: int, propagate=True):
         if val == 0:
             return
-        print(f"UPDATING {pos} : {val}")
         self.cells_unsolved -= 1
         box_pos, _ = puzzle_pos_to_box_pos(self, pos)
         i, j = pos
@@ -109,17 +117,14 @@ class Puzzle:
 
     def del_notes_row(self, val, row_num):
         self.cells.get_row(row_num).del_notes(val)
-        print("del row: ", row_num, " val: ", val)
 
     def del_notes_col(self, val, col_num):
         self.cells.get_col(col_num).del_notes(val)
-        print("del col: ", col_num, " val: ", val)
 
     def del_notes_box(self, val, box_pos):
         m, n = box_pos
         box = self.boxes[m][n]
         box.del_notes(val)
-        print("del box: ", box_pos, " val: ", val)
 
     def del_notes_cell(self, poss=[], vals=[], save_vals=[]):
         for pos in poss:
@@ -130,42 +135,8 @@ class Puzzle:
                     self[pos].notes.discard(val)
             for val in save_vals:
                 self[pos].notes.add(val)
-        print(f"del cell: {poss}, val: {vals}, save: {save_vals}")
 
     def solve(self):
-        if not is_valid(self):
-            print("Not a valid puzzle.")
-
-        found = [1]
-        ct = 0
-        while any(found) and ct < 20:
-            found = []
-            print("\nNAKED SINGLES")
-            found.append(find_naked_singles(self))
-
-            print("\nHIDDEN SINGLES")
-            found.append(find_hidden_singles(self))
-
-            print("\nNAKED DOUBLES")
-            found.append(find_naked_doubles(self))
-
-            print("\nHIDDEN DOUBLES")
-            found.append(find_hidden_doubles(self))
-
-            print("\nNAKED TRIPLES")
-            found.append(find_naked_triples(self))
-
-            print("\nHIDDEN TRIPLES")
-            found.append(find_hidden_triples(self))
-
-            print("\nNAKED QUADRUPLES")
-            found.append(find_naked_quadruples(self))
-
-            print("\nHIDDEN QUADRUPLES")
-            found.append(find_hidden_quadruples(self))
-
-            if not self.cells_unsolved:
-                print("SOLVED!!!!!!!!!")
-                break
-
-            ct += 1
+        solved = std_solve(self)
+        # if not solved:
+        #     nishio(self)
