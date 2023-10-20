@@ -6,20 +6,15 @@ from collections import defaultdict
 
 
 class Puzzle:
-    def __init__(
-        self,
-        vals=None,
-        puzzle_dim=(3, 3),
-        box_dim=(3, 3),
-    ):
-        self.puzzle_dim = puzzle_dim
-        self.box_dim = box_dim
+    def __init__(self, vals=None):
+        self.puzzle_dim = (3, 3)
+        self.box_dim = (3, 3)
         self.cell_dim = (
             self.box_dim[0] * self.puzzle_dim[0],
             self.box_dim[1] * self.puzzle_dim[1],
         )
         self.cells_unsolved = self.cell_dim[0] * self.cell_dim[1]
-        self.boxes = Box_Array(puzzle_dim, box_dim)
+        self.boxes = Box_Array(self.puzzle_dim, self.box_dim)
         self.cells = self.boxes.to_cell_arr()
 
         def def_val_list():

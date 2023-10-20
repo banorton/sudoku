@@ -1,5 +1,3 @@
-# TODO: Optimize the finding algorithms.
-
 import numpy as np
 from .helpers import *
 from collections import defaultdict
@@ -118,56 +116,41 @@ def find_naked_general(p, num):
 
     changes = ""
     # Row
-    for row_num in range(p.cell_dim[0]):
-        row, checks = p.get_row(row_num), defaultdict(def_val)
-        for col_num, cell in enumerate(row):
-            if cell.val != 0:
-                continue
+    for row_num, row in enumerate(p.cells):
+        checks = defaultdict(def_val)
+        for cell in row:
             notes = tuple(sorted(cell.notes))
             if len(notes) == num:
                 checks[notes].append(cell.pos)
-                if len(checks[notes]) == num:
-                    if tuple(checks[notes]) in p.checked[num]:
-                        continue
-                    else:
-                        p.checked[num][tuple(checks[notes])].extend(notes)
-                    p.del_notes(vals=notes, rows=[row_num], save=checks[notes])
-                    if row_num == 4 and num == 3:
-                        print()
-                    changes += f"Del Notes: row {row_num}, vals {notes}, save {checks[notes]}\n"
+                posns = tuple(checks[notes])
+                if (posns not in p.checked[num]) and (len(posns) == num):
+                    p.checked[num][posns].extend(notes)
+                    p.del_notes(vals=notes, rows=[row_num], save=posns)
+                    changes += f"Del Notes: row {row_num}, vals {notes}, save {posns}\n"
     # Col
-    for col_num in range(p.cell_dim[1]):
-        col, checks = p.get_col(col_num), defaultdict(def_val)
-        for row_num, cell in enumerate(col):
-            if cell.val != 0:
-                continue
+    for col_num, col in enumerate(p.cells.T):
+        checks = defaultdict(def_val)
+        for cell in col:
             notes = tuple(sorted(cell.notes))
             if len(notes) == num:
                 checks[notes].append(cell.pos)
-                if len(checks[notes]) == num:
-                    if tuple(checks[notes]) in p.checked[num]:
-                        continue
-                    else:
-                        p.checked[num][tuple(checks[notes])].extend(notes)
-                    p.del_notes(vals=notes, cols=[col_num], save=checks[notes])
-                    changes += f"Del Notes: col {col_num}, vals {notes}, save {checks[notes]}\n"
+                posns = tuple(checks[notes])
+                if (posns not in p.checked[num]) and (len(posns) == num):
+                    p.checked[num][posns].extend(notes)
+                    p.del_notes(vals=notes, cols=[col_num], save=posns)
+                    changes += f"Del Notes: col {col_num}, vals {notes}, save {posns}\n"
     # Box
-    for row in range(p.puzzle_dim[0]):
-        for col in range(p.puzzle_dim[1]):
-            box, checks = p.boxes[row, col].flatten(), defaultdict(def_val)
-            for cell in box:
-                if cell.val != 0:
-                    continue
-                notes = tuple(sorted(cell.notes))
-                if len(notes) == num:
-                    checks[notes].append(cell.pos)
-                    if len(checks[notes]) == num:
-                        if tuple(checks[notes]) in p.checked[num]:
-                            continue
-                        else:
-                            p.checked[num][tuple(checks[notes])].extend(notes)
-                        p.del_notes(vals=notes, boxes=[(row, col)], save=checks[notes])
-                        changes += f"Del Notes: box {(row, col)}, vals {notes}, save {checks[notes]}\n"
+    for box in p.boxes.flatten():
+        checks = defaultdict(def_val)
+        for cell in box.flatten():
+            notes = tuple(sorted(cell.notes))
+            if len(notes) == num:
+                checks[notes].append(cell.pos)
+                posns = tuple(checks[notes])
+                if (posns not in p.checked[num]) and (len(posns) == num):
+                    p.checked[num][posns].extend(notes)
+                    p.del_notes(vals=notes, boxes=[box.pos], save=posns)
+                    changes += f"Del Notes: box {box.pos}, vals {notes}, save {posns}\n"
     return changes
 
 
