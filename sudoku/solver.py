@@ -101,14 +101,11 @@ def find_naked_general(p, num):
         raise Exception
     elif num == 1:
         changes = ""
-        for row_num in range(9):
-            for col_num in range(9):
-                notes = p.cells[row_num][col_num].notes
-                if len(notes) == 1:
-                    if p.cells.np[row_num, col_num] == 0:
-                        note = notes.pop()
-                        p.update_cell((row_num, col_num), note)
-                        changes += f"Update Cell: {(row_num, col_num)}, {note}\n"
+        for cell in p.cells.flatten():
+            if (len(cell.notes) == 1) and (cell.val == 0):
+                [note] = cell.notes
+                p.update_cell(cell.pos, note)
+                changes += f"Update Cell: {cell.pos}, {note}\n"
         return changes
 
     def def_val():
