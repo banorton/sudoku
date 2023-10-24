@@ -145,114 +145,100 @@ def find_naked_general(p, num):
 
 def find_hidden_general(p, num):
     assert num > 0
-    if num == 1:
-        changes = ""
-        for row in p.cells:
-            for cell in row:
-                if cell.val != 0:
-                    continue
-                col = p.cells.T[cell.pos[1]]
-                box = p.get_box(cell.box_pos).flatten()
-
-                row_notes, col_notes, box_notes = (
-                    defaultdict(lambda: 0),
-                    defaultdict(lambda: 0),
-                    defaultdict(lambda: 0),
-                )
-                for rcell, ccell, bcell in zip(row, col, box):
-                    for r in rcell.notes:
-                        row_notes[r] += 1
-                    for c in ccell.notes:
-                        col_notes[c] += 1
-                    for b in bcell.notes:
-                        box_notes[b] += 1
-
-                for val in cell.notes:
-                    if row_notes[val] == 1:
-                        p.update_cell(cell.pos, val)
-                        changes += f"Update Cell: {cell.pos}, {val}\n"
-                    elif col_notes[val] == 1:
-                        p.update_cell(cell.pos, val)
-                        changes += f"Update Cell: {cell.pos}, {val}\n"
-                    elif box_notes[val] == 1:
-                        p.update_cell(cell.pos, val)
-                        changes += f"Update Cell: {cell.pos}, {val}\n"
-        return changes
-
-    changes = ""
-    changes_cells = ""
+    changes, changes_cells = "", ""
     # Row
-    for row_num in range(p.cell_dim[0]):
-        row = p.get_row(row_num)
-        counts = defaultdict(lambda: [])
-        for col_num, cell in enumerate(row):
-            notes = tuple(sorted(cell.notes))
-            for val in notes:
-                counts[val].append(cell.pos)
-        poss = defaultdict(lambda: [])
-        for key, value in counts.items():
-            value = tuple(value)
-            if len(value) == num:
-                poss[value].append(key)
-                if value in poss and len(poss[value]) == num:
-                    if value in p.checked[num]:
-                        continue
-                    else:
-                        p.checked[num][value].append(key)
-                    p.del_notes(vals=poss[value], rows=[row_num], save=value)
-                    changes += (
-                        f"Del Notes: row {row_num}, vals {poss[value]}, save {value}\n"
-                    )
-                    p.del_notes_cell(poss=value, save_vals=poss[value])
-                    changes_cells += f"Del Notes: cells {value}, save {poss[value]}\n"
+    for row_num, row in enumerate(p):
+        posns = defaultdict(lambda: [])
+        maybe = defaultdict(lambda: set())
+        found = dict()
+        for cell in row:
+            for note in sorted(cell.notes):
+                posns[note].append(cell.pos)
+                if len(posns[note]) == num:
+                    phash = tuple(posns[note])
+                    maybe[phash].add(note)
+                    if len(maybe[phash]) == num:
+                        found[phash] = tuple(maybe[phash])
+                    elif len(maybe[phash]) == num + 1:
+                        del found[phash]
+                elif len(posns[note]) == num + 1:
+                    phash = tuple(posns[note])
+                    maybe[phash[:-1]].remove(note)
+                    if phash[:-1] in found:
+                        del found[phash[:-1]]
+        for key, value in found.items():
+            if num == 1:
+                if p[key[0]].val == 0:
+                    p.update_cell(key[0], value[0])
+                    changes += f"Update Cell: {key[0]}, {value[0]}\n"
+            elif key not in p.checked[num]:
+                p.checked[num][key].append(value)
+                p.del_notes(vals=value, rows=[row_num], save=key)
+                changes += f"Del Notes: row {row_num}, vals {value}, save {key}\n"
+                p.del_notes_cell(poss=key, save_vals=value)
+                changes_cells += f"Del Notes: cells {key}, save {value}\n"
     # Col
-    for col_num in range(p.cell_dim[1]):
-        col = p.get_col(col_num)
-        counts = defaultdict(lambda: [])
-        for row_num, cell in enumerate(col):
-            notes = tuple(sorted(cell.notes))
-            for val in notes:
-                counts[val].append(cell.pos)
-        poss = defaultdict(lambda: [])
-        for key, value in counts.items():
-            value = tuple(value)
-            if len(value) == num:
-                poss[value].append(key)
-                if value in poss and len(poss[value]) == num:
-                    if value in p.checked[num]:
-                        continue
-                    else:
-                        p.checked[num][value].append(key)
-                    p.del_notes(vals=poss[value], cols=[col_num], save=value)
-                    changes += (
-                        f"Del Notes: col {col_num}, vals {poss[value]}, save {value}\n"
-                    )
-                    p.del_notes_cell(poss=value, save_vals=poss[value])
-                    changes_cells += f"Del Notes: cells {value}, save {poss[value]}\n"
+    for col_num, col in enumerate(p.cells.T):
+        posns = defaultdict(lambda: [])
+        maybe = defaultdict(lambda: set())
+        found = dict()
+        for cell in col:
+            for note in sorted(cell.notes):
+                posns[note].append(cell.pos)
+                if len(posns[note]) == num:
+                    phash = tuple(posns[note])
+                    maybe[phash].add(note)
+                    if len(maybe[phash]) == num:
+                        found[phash] = tuple(maybe[phash])
+                    elif len(maybe[phash]) == num + 1:
+                        del found[phash]
+                elif len(posns[note]) == num + 1:
+                    phash = tuple(posns[note])
+                    maybe[phash[:-1]].remove(note)
+                    if phash[:-1] in found:
+                        del found[phash[:-1]]
+        for key, value in found.items():
+            if num == 1:
+                if p[key[0]].val == 0:
+                    p.update_cell(key[0], value[0])
+                    changes += f"Update Cell: {key[0]}, {value[0]}\n"
+            elif key not in p.checked[num]:
+                p.checked[num][key].append(value)
+                p.del_notes(vals=value, cols=[col_num], save=key)
+                changes += f"Del Notes: col {col_num}, vals {value}, save {key}\n"
+                p.del_notes_cell(poss=key, save_vals=value)
+                changes_cells += f"Del Notes: cells {key}, save {value}\n"
     # Box
-    for row in range(p.puzzle_dim[0]):
-        for col in range(p.puzzle_dim[1]):
-            box, counts = p.boxes[row, col].flatten(), defaultdict(lambda: [])
-            for cell in box:
-                notes = tuple(sorted(cell.notes))
-                for val in notes:
-                    counts[val].append(cell.pos)
-            poss = defaultdict(lambda: [])
-            for key, value in counts.items():
-                value = tuple(value)
-                if len(value) == num:
-                    poss[value].append(key)
-                    if value in poss and len(poss[value]) == num:
-                        if value in p.checked[num]:
-                            continue
-                        else:
-                            p.checked[num][value].append(key)
-                        p.del_notes(vals=poss[value], boxes=[(row, col)], save=value)
-                        changes += f"Del Notes: box {(row, col)}, vals {poss[value]}, save {value}\n"
-                        p.del_notes_cell(poss=value, save_vals=poss[value])
-                        changes_cells += (
-                            f"Del Notes: cells {value}, save {poss[value]}\n"
-                        )
+    for box in p.boxes.flatten():
+        posns = defaultdict(lambda: [])
+        maybe = defaultdict(lambda: set())
+        found = dict()
+        for cell in box.flatten():
+            for note in sorted(cell.notes):
+                posns[note].append(cell.pos)
+                if len(posns[note]) == num:
+                    phash = tuple(posns[note])
+                    maybe[phash].add(note)
+                    if len(maybe[phash]) == num:
+                        found[phash] = tuple(maybe[phash])
+                    elif len(maybe[phash]) == num + 1:
+                        del found[phash]
+                elif len(posns[note]) == num + 1:
+                    phash = tuple(posns[note])
+                    maybe[phash[:-1]].remove(note)
+                    if phash[:-1] in found:
+                        del found[phash[:-1]]
+        for key, value in found.items():
+            if num == 1:
+                if p[key[0]].val == 0:
+                    p.update_cell(key[0], value[0])
+                    changes += f"Update Cell: {key[0]}, {value[0]}\n"
+            elif key not in p.checked[num]:
+                p.checked[num][key].append(value)
+                p.del_notes(vals=value, boxes=[col_num], save=key)
+                changes += f"Del Notes: box {box.pos}, vals {value}, save {key}\n"
+                p.del_notes_cell(poss=key, save_vals=value)
+                changes_cells += f"Del Notes: cells {key}, save {value}\n"
     return changes + changes_cells
 
 

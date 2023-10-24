@@ -127,9 +127,9 @@ class Puzzle:
 
     def solve(self):
         solved = std_solve(self)
-        if not solved:
-            nishio(self)
-        print("SOLVED")
+        # if not solved:
+        #     nishio(self)
+        # print("SOLVED")
 
     def copy(self, p):
         self.cells_unsolved = p.cells_unsolved
