@@ -6,29 +6,18 @@ from collections import defaultdict
 
 
 class Puzzle:
-    def __init__(
-        self,
-        vals=None,
-        puzzle_dim=(3, 3),
-        box_dim=(3, 3),
-    ):
-        self.puzzle_dim = puzzle_dim
-        self.box_dim = box_dim
+    def __init__(self, vals=None):
+        self.puzzle_dim = (3, 3)
+        self.box_dim = (3, 3)
         self.cell_dim = (
             self.box_dim[0] * self.puzzle_dim[0],
             self.box_dim[1] * self.puzzle_dim[1],
         )
         self.cells_unsolved = self.cell_dim[0] * self.cell_dim[1]
-        self.boxes = Box_Array(puzzle_dim, box_dim)
+        self.boxes = Box_Array(self.puzzle_dim, self.box_dim)
         self.cells = self.boxes.to_cell_arr()
 
-        def def_val_list():
-            return []
-
-        def def_val_dict():
-            return defaultdict(def_val_list)
-
-        self.checked = defaultdict(def_val_dict)
+        self.checked = defaultdict(lambda: defaultdict(lambda: []))
         if not (vals is None):
             self._assign_vals(vals)
 
@@ -126,8 +115,8 @@ class Puzzle:
         box = self.boxes[m][n]
         box.del_notes(val)
 
-    def del_notes_cell(self, poss=[], vals=[], save_vals=[]):
-        for pos in poss:
+    def del_notes_cell(self, posns=[], vals=[], save_vals=[]):
+        for pos in posns:
             if not vals:
                 self[pos].notes = set()
             else:

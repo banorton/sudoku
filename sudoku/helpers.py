@@ -5,6 +5,7 @@ TODO: Find better names for the functions.
 """
 
 from math import floor, ceil
+from itertools import chain
 
 
 def pos_to_num(pos: tuple, super_dim: tuple) -> int:
@@ -57,3 +58,7 @@ def transpose(arr):
         return [[el] for el in arr]
     else:
         return list(map(list, (zip(*arr))))
+
+
+def flatten(arr):
+    return list(chain.from_iterable(arr))

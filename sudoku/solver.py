@@ -1,5 +1,3 @@
-# TODO: Optimize the finding algorithms.
-
 import numpy as np
 from .helpers import *
 from collections import defaultdict
@@ -8,24 +6,20 @@ from copy import deepcopy as dcopy
 
 def is_valid(p) -> bool:
     # Check boxs for duplicates.
-    for box_num in range(1, 10):
-        box_pos = num_to_pos(box_num, p.puzzle_dim)
-        box = p.boxes[box_pos[0]][box_pos[1]]
-        box_cells = box.flatten().np
-        box_cells = np.delete(box_cells, np.where(box_cells == 0))
-        if box_cells.size > np.unique(box_cells).size:
+    for box in p.boxes.flatten():
+        box = box.np.flatten()
+        box = np.delete(box, np.where(box == 0))
+        if box.size > np.unique(box).size:
             return False
 
     # Check rows for duplicates.
-    for row_num in range(9):
-        row = p.cells.get_row(row_num).np
+    for row in p.cells.np:
         row = np.delete(row, np.where(row == 0))
         if row.size > np.unique(row).size:
             return False
 
     # Check columns for duplicates.
-    for col_num in range(9):
-        col = p.cells.get_col(col_num).np
+    for col in p.cells.np.T:
         col = np.delete(col, np.where(col == 0))
         if col.size > np.unique(col).size:
             return False
@@ -99,82 +93,59 @@ def nishio(p):
 ############################################################################
 # GENERALIZED
 def find_naked_general(p, num):
-    if num < 0:
-        raise Exception
-    elif num == 1:
+    assert num > 0
+    if num == 1:
         changes = ""
-        for row_num in range(9):
-            for col_num in range(9):
-                notes = p.cells[row_num][col_num].notes
-                if len(notes) == 1:
-                    if p.cells.np[row_num, col_num] == 0:
-                        note = notes.pop()
-                        p.update_cell((row_num, col_num), note)
-                        changes += f"Update Cell: {(row_num, col_num)}, {note}\n"
+        for cell in p.cells.flatten():
+            if (len(cell.notes) == 1) and (cell.val == 0):
+                [note] = cell.notes
+                p.update_cell(cell.pos, note)
+                changes += f"Update Cell: {cell.pos}, {note}\n"
         return changes
-
-    def def_val():
-        return []
 
     changes = ""
     # Row
-    for row_num in range(p.cell_dim[0]):
-        row, checks = p.get_row(row_num), defaultdict(def_val)
-        for col_num, cell in enumerate(row):
-            if cell.val != 0:
-                continue
+    for row_num, row in enumerate(p.cells):
+        checks = defaultdict(lambda: [])
+        for cell in row:
             notes = tuple(sorted(cell.notes))
             if len(notes) == num:
                 checks[notes].append(cell.pos)
-                if len(checks[notes]) == num:
-                    if tuple(checks[notes]) in p.checked[num]:
-                        continue
-                    else:
-                        p.checked[num][tuple(checks[notes])].extend(notes)
-                    p.del_notes(vals=notes, rows=[row_num], save=checks[notes])
-                    if row_num == 4 and num == 3:
-                        print()
-                    changes += f"Del Notes: row {row_num}, vals {notes}, save {checks[notes]}\n"
+                posns = tuple(checks[notes])
+                if (posns not in p.checked[num]) and (len(posns) == num):
+                    p.checked[num][posns].extend(notes)
+                    p.del_notes(vals=notes, rows=[row_num], save=posns)
+                    changes += f"Del Notes: row {row_num}, vals {notes}, save {posns}\n"
     # Col
-    for col_num in range(p.cell_dim[1]):
-        col, checks = p.get_col(col_num), defaultdict(def_val)
-        for row_num, cell in enumerate(col):
-            if cell.val != 0:
-                continue
+    for col_num, col in enumerate(p.cells.T):
+        checks = defaultdict(lambda: [])
+        for cell in col:
             notes = tuple(sorted(cell.notes))
             if len(notes) == num:
                 checks[notes].append(cell.pos)
-                if len(checks[notes]) == num:
-                    if tuple(checks[notes]) in p.checked[num]:
-                        continue
-                    else:
-                        p.checked[num][tuple(checks[notes])].extend(notes)
-                    p.del_notes(vals=notes, cols=[col_num], save=checks[notes])
-                    changes += f"Del Notes: col {col_num}, vals {notes}, save {checks[notes]}\n"
+                posns = tuple(checks[notes])
+                if (posns not in p.checked[num]) and (len(posns) == num):
+                    p.checked[num][posns].extend(notes)
+                    p.del_notes(vals=notes, cols=[col_num], save=posns)
+                    changes += f"Del Notes: col {col_num}, vals {notes}, save {posns}\n"
     # Box
-    for row in range(p.puzzle_dim[0]):
-        for col in range(p.puzzle_dim[1]):
-            box, checks = p.boxes[row, col].flatten(), defaultdict(def_val)
-            for cell in box:
-                if cell.val != 0:
-                    continue
-                notes = tuple(sorted(cell.notes))
-                if len(notes) == num:
-                    checks[notes].append(cell.pos)
-                    if len(checks[notes]) == num:
-                        if tuple(checks[notes]) in p.checked[num]:
-                            continue
-                        else:
-                            p.checked[num][tuple(checks[notes])].extend(notes)
-                        p.del_notes(vals=notes, boxes=[(row, col)], save=checks[notes])
-                        changes += f"Del Notes: box {(row, col)}, vals {notes}, save {checks[notes]}\n"
+    for box in p.boxes.flatten():
+        checks = defaultdict(lambda: [])
+        for cell in box.flatten():
+            notes = tuple(sorted(cell.notes))
+            if len(notes) == num:
+                checks[notes].append(cell.pos)
+                posns = tuple(checks[notes])
+                if (posns not in p.checked[num]) and (len(posns) == num):
+                    p.checked[num][posns].extend(notes)
+                    p.del_notes(vals=notes, boxes=[box.pos], save=posns)
+                    changes += f"Del Notes: box {box.pos}, vals {notes}, save {posns}\n"
     return changes
 
 
 def find_hidden_general(p, num):
-    if num < 0:
-        raise Exception
-    elif num == 1:
+    assert num > 0
+    if num == 1:
         changes = ""
         for row_num in range(9):
             row = p.get_row(row_num)
@@ -208,82 +179,77 @@ def find_hidden_general(p, num):
                         changes += f"Update Cell: {pos}, {val}\n"
         return changes
 
-    def def_val():
-        return []
-
-    changes = ""
-    changes_cells = ""
+    changes, changes_cells = "", ""
     # Row
-    for row_num in range(p.cell_dim[0]):
-        row = p.get_row(row_num)
-        counts = defaultdict(def_val)
-        for col_num, cell in enumerate(row):
-            notes = tuple(sorted(cell.notes))
+    for row_num, row in enumerate(p.cells):
+        counts = defaultdict(lambda: [])
+        for cell in row:
+            notes = sorted(cell.notes)
             for val in notes:
                 counts[val].append(cell.pos)
-        poss = defaultdict(def_val)
+        posns = defaultdict(lambda: [])
         for key, value in counts.items():
             value = tuple(value)
             if len(value) == num:
-                poss[value].append(key)
-                if value in poss and len(poss[value]) == num:
+                posns[value].append(key)
+                if value in posns and len(posns[value]) == num:
                     if value in p.checked[num]:
                         continue
                     else:
                         p.checked[num][value].append(key)
-                    p.del_notes(vals=poss[value], rows=[row_num], save=value)
+                    p.del_notes(vals=posns[value], rows=[row_num], save=value)
                     changes += (
-                        f"Del Notes: row {row_num}, vals {poss[value]}, save {value}\n"
+                        f"Del Notes: row {row_num}, vals {posns[value]}, save {value}\n"
                     )
-                    p.del_notes_cell(poss=value, save_vals=poss[value])
-                    changes_cells += f"Del Notes: cells {value}, save {poss[value]}\n"
+                    p.del_notes_cell(posns=value, save_vals=posns[value])
+                    changes_cells += f"Del Notes: cells {value}, save {posns[value]}\n"
     # Col
     for col_num in range(p.cell_dim[1]):
         col = p.get_col(col_num)
-        counts = defaultdict(def_val)
+        counts = defaultdict(lambda: [])
         for row_num, cell in enumerate(col):
             notes = tuple(sorted(cell.notes))
             for val in notes:
                 counts[val].append(cell.pos)
-        poss = defaultdict(def_val)
+        posns = defaultdict(lambda: [])
         for key, value in counts.items():
             value = tuple(value)
             if len(value) == num:
-                poss[value].append(key)
-                if value in poss and len(poss[value]) == num:
+                posns[value].append(key)
+                if value in posns and len(posns[value]) == num:
                     if value in p.checked[num]:
                         continue
                     else:
                         p.checked[num][value].append(key)
-                    p.del_notes(vals=poss[value], cols=[col_num], save=value)
+                    p.del_notes(vals=posns[value], cols=[col_num], save=value)
                     changes += (
-                        f"Del Notes: col {col_num}, vals {poss[value]}, save {value}\n"
+                        f"Del Notes: col {col_num}, vals {posns[value]}, save {value}\n"
                     )
-                    p.del_notes_cell(poss=value, save_vals=poss[value])
-                    changes_cells += f"Del Notes: cells {value}, save {poss[value]}\n"
+                    p.del_notes_cell(posns=value, save_vals=posns[value])
+                    changes_cells += f"Del Notes: cells {value}, save {posns[value]}\n"
     # Box
     for row in range(p.puzzle_dim[0]):
         for col in range(p.puzzle_dim[1]):
-            box, counts = p.boxes[row, col].flatten(), defaultdict(def_val)
+            box, counts = p.boxes[row, col].flatten(), defaultdict(lambda: [])
             for cell in box:
                 notes = tuple(sorted(cell.notes))
                 for val in notes:
                     counts[val].append(cell.pos)
-            poss = defaultdict(def_val)
+            posns = defaultdict(lambda: [])
             for key, value in counts.items():
                 value = tuple(value)
                 if len(value) == num:
-                    poss[value].append(key)
-                    if value in poss and len(poss[value]) == num:
+                    posns[value].append(key)
+                    if value in posns and len(posns[value]) == num:
                         if value in p.checked[num]:
                             continue
                         else:
                             p.checked[num][value].append(key)
-                        p.del_notes(vals=poss[value], boxes=[(row, col)], save=value)
-                        changes += f"Del Notes: box {(row, col)}, vals {poss[value]}, save {value}\n"
-                        p.del_notes_cell(poss=value, save_vals=poss[value])
+                        p.del_notes(vals=posns[value], boxes=[(row, col)], save=value)
+                        changes += f"Del Notes: box {(row, col)}, vals {posns[value]}, save {value}\n"
+                        p.del_notes_cell(posns=value, save_vals=posns[value])
                         changes_cells += (
-                            f"Del Notes: cells {value}, save {poss[value]}\n"
+                            f"Del Notes: cells {value}, save {posns[value]}\n"
                         )
     return changes + changes_cells
 
@@ -359,18 +325,14 @@ def find_hidden_quadruples(p, prnt=True):
 ############################################################################
 # OTHER
 def find_inline(p, prnt=True):
-    def def_val():
-        return []
-
     changes = ""
     for row in range(p.puzzle_dim[0]):
         for col in range(p.puzzle_dim[1]):
-            box, counts = p.boxes[row, col].flatten(), defaultdict(def_val)
+            box, counts = p.boxes[row, col].flatten(), defaultdict(lambda: [])
             for cell in box:
                 notes = tuple(sorted(cell.notes))
                 for val in notes:
                     counts[val].append(cell.pos)
-            poss = defaultdict(def_val)
             for key, value in counts.items():
                 if len(value) == 2:
                     if value[0][0] == value[1][0]:
