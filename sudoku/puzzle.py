@@ -115,8 +115,8 @@ class Puzzle:
         box = self.boxes[m][n]
         box.del_notes(val)
 
-    def del_notes_cell(self, poss=[], vals=[], save_vals=[]):
-        for pos in poss:
+    def del_notes_cell(self, posns=[], vals=[], save_vals=[]):
+        for pos in posns:
             if not vals:
                 self[pos].notes = set()
             else:
@@ -127,9 +127,9 @@ class Puzzle:
 
     def solve(self):
         solved = std_solve(self)
-        # if not solved:
-        #     nishio(self)
-        # print("SOLVED")
+        if not solved:
+            nishio(self)
+        print("SOLVED")
 
     def copy(self, p):
         self.cells_unsolved = p.cells_unsolved
