@@ -24,6 +24,12 @@ def num_to_pos(num: int, super_dim: tuple) -> tuple:
     return (row, col)
 
 
+def box_pos_to_puzzle_pos(box_dim, box_pos, rel_pos):
+    roffset = box_pos[0] * box_dim[0]
+    coffset = box_pos[1] * box_dim[1]
+    return (roffset + rel_pos[0], coffset + rel_pos[1])
+
+
 def puzzle_pos_to_box_pos(p, puzzle_pos: tuple) -> tuple:
     box_row = ceil((puzzle_pos[0] + 1) / p.box_dim[0]) - 1
     box_col = ceil((puzzle_pos[1] + 1) / p.box_dim[1]) - 1

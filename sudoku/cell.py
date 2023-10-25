@@ -36,26 +36,6 @@ class Cell_Array(Array):
         Array.__init__(self, prep_arr)
         self.np = self._get_np(prep_arr)
 
-    # def __getitem__(self, pos):
-    #     res = None
-    #     if isinstance(pos, int):
-    #         res = self.arr[pos]
-    #     elif pos[0] == slice(None, None, None) and isinstance(pos[1], int):
-    #         res = transpose(self.T[pos[1]])
-    #     elif isinstance(pos[0], int) and pos[1] == slice(None, None, None):
-    #         res = self.arr[pos[0]]
-    #     elif isinstance(pos[0], int) and isinstance(pos[1], slice):
-    #         res = self.arr[pos[0]][pos[1]]
-    #     elif isinstance(pos[0], slice) and isinstance(pos[1], int):
-    #         res = transpose(self.T[pos[1]][pos[0]])
-    #     elif isinstance(pos[0], int) and isinstance(pos[1], int):
-    #         return self.arr[pos[0]][pos[1]]
-
-    #     if isinstance(res, list):
-    #         return Cell_Array(res)
-    #     else:
-    #         return res
-
     def _get_np(self, arr):
         if self.dim[0] == 1:
             return np.array([cell.val for cell in arr])
