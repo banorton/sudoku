@@ -52,6 +52,7 @@ class gui:
                         new_entry = ttk.Entry(
                             box, font="Helvetica 22 bold", justify="center"
                         )
+                        new_entry.bind("<Return>", self.test)
                         new_entry.grid(row=r, column=c, sticky="news")
                         pos = box_pos_to_puzzle_pos((3, 3), (row_num, col_num), (r, c))
                         entries[pos[0]][pos[1]] = new_entry
@@ -62,3 +63,6 @@ class gui:
 
     def clear(self):
         self.parent.clear()
+
+    def test(self, e):
+        print(e)

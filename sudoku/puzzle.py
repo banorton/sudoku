@@ -178,7 +178,15 @@ class PuzzleGUI:
                 else:
                     self.updateGUI(cell.pos, "")
 
+    def match_Puzzle_with_GUI(self):
+        for r, row in enumerate(self.gui.entries):
+            for c, entry in enumerate(row):
+                val = entry.get()
+                val = int(val) if val else 0
+                self.puzzle.update_cell((r, c), val)
+
     def solve(self):
+        self.match_Puzzle_with_GUI()
         self.puzzle.solve()
         self.match_GUI_with_Puzzle()
 
