@@ -3,7 +3,7 @@ from imutils import contours
 import numpy as np
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-import pytesseract as pytes
+import pytesseract as ocr
 
 
 def proc():
@@ -63,10 +63,15 @@ def proc():
         for cnt in row:
             if cv2.contourArea(cnt) > 200:
                 (x, y, w, h) = cv2.boundingRect(cnt)
-                # cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 255), 1)
                 num_img = gray[y : y + h, x : x + w]
-                num = pytes.image_to_string(num_img)
+                num = ocr.image_to_string(
+                    num_img,
+                    lang="eng",
+                    config="--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789",
+                )
                 nums.append(num)
+                if (len(num) - 2) == 2:
+                    print()
                 print(num)
-                # cv2.imshow("", num_img)
-                # cv2.waitKey(200)
+                cv2.imshow("", num_img)
+                cv2.waitKey(20)
