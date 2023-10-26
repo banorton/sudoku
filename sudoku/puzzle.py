@@ -6,6 +6,7 @@ from .gui.gui import gui
 from collections import defaultdict
 import tkinter as tk
 from math import prod
+from .imgproc.imgproc import proc
 
 
 class Puzzle:
@@ -52,16 +53,16 @@ class Puzzle:
         puzzle_str += "-------------------------------------------------------------------------------------------------\n"
         return puzzle_str
 
-    def _assign_vals(self, vals):
+    def _assign_vals(self, vals, force=False):
         if not isinstance(vals, np.ndarray):
             vals = np.array(vals)
         vals = np.reshape(vals, self.cell_dim).tolist()
         for m in range(self.cell_dim[0]):
             for n in range(self.cell_dim[1]):
-                self.update_cell((m, n), vals[m][n])
+                self.update_cell((m, n), vals[m][n], force)
 
-    def load(self, vals):
-        self._assign_vals(vals)
+    def load(self, vals, force=False):
+        self._assign_vals(vals, force)
 
     def get_cell(self, pos: tuple):
         row, col = pos
@@ -77,23 +78,26 @@ class Puzzle:
         row, col = pos
         return self.boxes[row][col]
 
-    def update_cell(self, pos: tuple, val: int, propagate=True):
+    def update_cell(self, pos: tuple, val: int, force=False, propagate=True):
         if val == 0:
             return
         self.cells_unsolved -= 1
         box_pos, _ = puzzle_pos_to_box_pos(self, pos)
-        i, j = pos
-        self[i, j].val = val
-        self[i, j].notes = {val}
+        r, c = pos
+        self[r, c].val = val
+        self[r, c].notes = {val}
+
+        if not force:
+            if not is_valid(self):
+                raise Exception("Not valid.")
+        elif force:
+            if not is_valid(self):
+                val = 0
+                self[r, c].val = val
+                self[r, c].notes = {val}
 
         if propagate:
-            row, col = pos
-            self.del_notes(
-                vals=[val], rows=[row], cols=[col], boxes=[box_pos], save=[pos]
-            )
-
-        if not is_valid(self):
-            raise Exception("Not valid.")
+            self.del_notes(vals=[val], rows=[r], cols=[c], boxes=[box_pos], save=[pos])
 
     def del_notes(self, vals=[], rows=[], cols=[], boxes=[], positions=[], save=[]):
         for val in vals:
@@ -192,4 +196,10 @@ class PuzzleGUI:
 
     def clear(self):
         self.puzzle.clear()
+        self.match_GUI_with_Puzzle()
+
+    def load_image(self):
+        nums = proc()
+        self.puzzle.clear()
+        self.puzzle.load(nums, force=True)
         self.match_GUI_with_Puzzle()

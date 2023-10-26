@@ -7,6 +7,7 @@ import pytesseract as ocr
 
 
 def proc():
+    ocr.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
     Tk().withdraw()
     filename = askopenfilename()
 
@@ -48,16 +49,6 @@ def proc():
                 sudoku_rows.append(cnts)
                 row = []
 
-    # Iterate through each box
-    # for row in sudoku_rows:
-    #     for c in row:
-    #         mask = np.zeros(image.shape, dtype=np.uint8)
-    #         cv2.drawContours(mask, [c], -1, (255, 255, 255), -1)
-    #         # result = cv2.bitwise_and(image, mask)
-    #         # result[mask == 0] = 255
-    #         cv2.imshow("result", image)
-    #         cv2.waitKey(175)
-
     nums = []
     for row in sudoku_rows:
         for cnt in row:
@@ -66,12 +57,13 @@ def proc():
                 num_img = gray[y : y + h, x : x + w]
                 num = ocr.image_to_string(
                     num_img,
-                    lang="eng",
-                    config="--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789",
+                    config="--psm 10 --oem 3 -c tessedit_char_whitelist=123456789",
                 )
+                if not num:
+                    num = 0
+                elif len(num) > 2:
+                    num = 0
+                else:
+                    num = int(num[0])
                 nums.append(num)
-                if (len(num) - 2) == 2:
-                    print()
-                print(num)
-                cv2.imshow("", num_img)
-                cv2.waitKey(20)
+    return nums
