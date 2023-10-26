@@ -1,1 +1,2 @@
-gui/*.tcl
+gui/* .tcl
+*.tcl
