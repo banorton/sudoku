@@ -1,2 +1,1 @@
-gui/* .tcl
-*.tcl
+*.tcl linguist-detectable=false
