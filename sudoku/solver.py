@@ -28,24 +28,24 @@ def is_valid(p) -> bool:
     return True
 
 
-def std_solve(p) -> bool:
+def std_solve(p, prnt=False) -> bool:
     if not is_valid(p):
         print("Not a valid puzzle.")
-    if not p.cells_unsolved:
+    if not p.cells_unsolved and prnt:
         print("SOLVED")
         return True
 
     ct = 0
     while ct < 10:
-        find_naked_singles(p)
-        find_hidden_singles(p)
-        find_inline(p)
-        find_naked_doubles(p)
-        find_hidden_doubles(p)
-        find_naked_triples(p)
-        find_hidden_triples(p)
-        find_naked_quadruples(p)
-        find_hidden_quadruples(p)
+        find_naked_singles(p, prnt)
+        find_hidden_singles(p, prnt)
+        find_inline(p, prnt)
+        find_naked_doubles(p, prnt)
+        find_hidden_doubles(p, prnt)
+        find_naked_triples(p, prnt)
+        find_hidden_triples(p, prnt)
+        find_naked_quadruples(p, prnt)
+        find_hidden_quadruples(p, prnt)
         if not p.cells_unsolved:
             return True
         ct += 1
@@ -256,7 +256,7 @@ def find_hidden_general(p, num):
 
 ############################################################################
 # NAKED
-def find_naked_singles(p, prnt=True):
+def find_naked_singles(p, prnt=False):
     changes = find_naked_general(p, 1)
     if prnt and changes:
         print("NAKED SINGLES")
@@ -264,7 +264,7 @@ def find_naked_singles(p, prnt=True):
     return changes
 
 
-def find_naked_doubles(p, prnt=True):
+def find_naked_doubles(p, prnt=False):
     changes = find_naked_general(p, 2)
     if prnt and changes:
         print("NAKED DOUBLES")
@@ -272,7 +272,7 @@ def find_naked_doubles(p, prnt=True):
     return changes
 
 
-def find_naked_triples(p, prnt=True):
+def find_naked_triples(p, prnt=False):
     changes = find_naked_general(p, 3)
     if prnt and changes:
         print("NAKED TRIPLES")
@@ -280,7 +280,7 @@ def find_naked_triples(p, prnt=True):
     return changes
 
 
-def find_naked_quadruples(p, prnt=True):
+def find_naked_quadruples(p, prnt=False):
     changes = find_naked_general(p, 4)
     if prnt and changes:
         print("NAKED QUADRUPLES")
@@ -290,7 +290,7 @@ def find_naked_quadruples(p, prnt=True):
 
 ############################################################################
 # HIDDEN
-def find_hidden_singles(p, prnt=True):
+def find_hidden_singles(p, prnt=False):
     changes = find_hidden_general(p, 1)
     if prnt and changes:
         print("HIDDEN SINGLES")
@@ -298,7 +298,7 @@ def find_hidden_singles(p, prnt=True):
     return changes
 
 
-def find_hidden_doubles(p, prnt=True):
+def find_hidden_doubles(p, prnt=False):
     changes = find_hidden_general(p, 2)
     if prnt and changes:
         print("HIDDEN DOUBLES")
@@ -306,7 +306,7 @@ def find_hidden_doubles(p, prnt=True):
     return changes
 
 
-def find_hidden_triples(p, prnt=True):
+def find_hidden_triples(p, prnt=False):
     changes = find_hidden_general(p, 3)
     if prnt and changes:
         print("HIDDEN TRIPLES")
@@ -314,7 +314,7 @@ def find_hidden_triples(p, prnt=True):
     return changes
 
 
-def find_hidden_quadruples(p, prnt=True):
+def find_hidden_quadruples(p, prnt=False):
     changes = find_hidden_general(p, 4)
     if prnt and changes:
         print("HIDDEN QUADRUPLES")
@@ -324,7 +324,7 @@ def find_hidden_quadruples(p, prnt=True):
 
 ############################################################################
 # OTHER
-def find_inline(p, prnt=True):
+def find_inline(p, prnt=False):
     changes = ""
     for row in range(p.puzzle_dim[0]):
         for col in range(p.puzzle_dim[1]):
@@ -355,6 +355,9 @@ def find_inline(p, prnt=True):
                         changes += (
                             f"Del Notes: col {value[0][1]}, val {[key]}, save {value}\n"
                         )
+    if prnt and changes:
+        print("INLINE")
+        print(changes)
     return changes
 
 

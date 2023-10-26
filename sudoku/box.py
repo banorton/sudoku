@@ -44,11 +44,15 @@ class Box(Cell_Array):
 
 
 class Box_Array(Array):
-    def __init__(self, dim: tuple, box_dim: tuple):
+    def __init__(self, dim: tuple, box_dim: tuple, vals=None):
         Array.__init__(self, self._gen_box_arr(dim, box_dim))
         self.dim = dim
         self.box_dim = box_dim
         self.cell_dim = (dim[0] * box_dim[0], dim[1] * box_dim[1])
+        if vals:
+            self.vals = self._assign_vals(vals)
+        else:
+            self.vals = vals
 
     def _gen_box_arr(self, dim, box_dim):
         arr = [[] for _ in range(dim[0])]
@@ -58,13 +62,14 @@ class Box_Array(Array):
         return arr
 
     def _assign_vals(self, vals):
-        if isinstance(vals, np.ndarray):
-            vals = np.array(vals)
-        vals = np.reshape(vals, self.cell_dim)
-        num_row, num_col = self.cell_dim
-        for m in range(num_row):
-            for n in range(num_col):
-                self.update_cell((m, n), vals[m, n])
+        return
+        # if isinstance(vals, np.ndarray):
+        #     vals = np.array(vals)
+        # vals = np.reshape(vals, self.cell_dim)
+        # num_row, num_col = self.cell_dim
+        # for m in range(num_row):
+        #     for n in range(num_col):
+        #         self.update_cell((m, n), vals[m, n])
 
     def to_cell_arr(self) -> Cell_Array:
         arr = [[] for _ in range(self.cell_dim[0])]

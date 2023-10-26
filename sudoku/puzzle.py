@@ -2,7 +2,10 @@ import numpy as np
 from .solver import std_solve, is_valid, nishio
 from .helpers import puzzle_pos_to_box_pos
 from .box import Box_Array
+from .gui.gui import gui
 from collections import defaultdict
+import tkinter as tk
+from math import prod
 
 
 class Puzzle:
@@ -16,10 +19,10 @@ class Puzzle:
         self.cells_unsolved = self.cell_dim[0] * self.cell_dim[1]
         self.boxes = Box_Array(self.puzzle_dim, self.box_dim)
         self.cells = self.boxes.to_cell_arr()
-
         self.checked = defaultdict(lambda: defaultdict(lambda: []))
         if not (vals is None):
             self._assign_vals(vals)
+            self.parent.load(vals)
 
     def __getitem__(self, pos):
         return self.cells.__getitem__(pos)
@@ -125,14 +128,68 @@ class Puzzle:
             for val in save_vals:
                 self[pos].notes.add(val)
 
-    def solve(self):
-        solved = std_solve(self)
+    def solve(self, prnt=False):
+        solved = std_solve(self, prnt)
         if not solved:
             nishio(self)
-        print("SOLVED")
+        if prnt:
+            print("SOLVED")
 
     def copy(self, p):
         self.cells_unsolved = p.cells_unsolved
         self.boxes = p.boxes
         self.cells = p.cells
         self.checked = p.checked
+
+    def clear(self):
+        for row in self:
+            for cell in row:
+                cell.val = 0
+                cell.notes = set(range(1, 10))
+        self.cells_unsolved = prod(self.cell_dim)
+        self.checked = defaultdict(lambda: defaultdict(lambda: []))
+
+
+class PuzzleGUI:
+    def __init__(self, vals=None):
+        self.gui = gui(parent=self)
+        self.puzzle = Puzzle()
+        if vals:
+            self.puzzle.load(vals)
+            self.match_GUI_with_Puzzle()
+        self.gui.root.mainloop()
+
+    def load(self, vals):
+        self.puzzle.load(vals)
+
+    def updateGUI(self, pos, val):
+        row, col = pos
+        self.gui.entries[row][col].delete(0, tk.END)
+        self.gui.entries[row][col].insert(0, str(val))
+
+    def updatePuzzle(self, pos, val):
+        return
+
+    def match_GUI_with_Puzzle(self):
+        for row in self.puzzle:
+            for cell in row:
+                if cell.val:
+                    self.updateGUI(cell.pos, cell.val)
+                else:
+                    self.updateGUI(cell.pos, "")
+
+    def match_Puzzle_with_GUI(self):
+        for r, row in enumerate(self.gui.entries):
+            for c, entry in enumerate(row):
+                val = entry.get()
+                val = int(val) if val else 0
+                self.puzzle.update_cell((r, c), val)
+
+    def solve(self):
+        self.match_Puzzle_with_GUI()
+        self.puzzle.solve()
+        self.match_GUI_with_Puzzle()
+
+    def clear(self):
+        self.puzzle.clear()
+        self.match_GUI_with_Puzzle()
