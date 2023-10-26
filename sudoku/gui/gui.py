@@ -19,8 +19,10 @@ class gui:
         info = ttk.Frame(root)
         solve_btn = ttk.Button(info, text="Solve", command=self.solve)
         clear_btn = ttk.Button(info, text="Clear", command=self.clear)
+        load_image_btn = ttk.Button(info, text="Load Image", command=self.load_image)
         solve_btn.pack(fill="x", pady=10)
         clear_btn.pack(fill="x", pady=10)
+        load_image_btn.pack(fill="x", pady=10)
         info.pack(side="left", padx=10)
 
         puzzle = ttk.Frame(root)
@@ -52,7 +54,6 @@ class gui:
                         new_entry = ttk.Entry(
                             box, font="Helvetica 22 bold", justify="center"
                         )
-                        new_entry.bind("<Return>", self.test)
                         new_entry.grid(row=r, column=c, sticky="news")
                         pos = box_pos_to_puzzle_pos((3, 3), (row_num, col_num), (r, c))
                         entries[pos[0]][pos[1]] = new_entry
@@ -64,5 +65,5 @@ class gui:
     def clear(self):
         self.parent.clear()
 
-    def test(self, e):
-        print(e)
+    def load_image(self):
+        self.parent.load_image()
