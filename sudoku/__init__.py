@@ -4,3 +4,4 @@ from .cell import *
 from .helpers import *
 from .solver import *
 from .examples import *
+from .imgproc import *
