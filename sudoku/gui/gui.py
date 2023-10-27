@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from sudoku.box import Box_Array
 from sudoku.helpers import box_pos_to_puzzle_pos, transpose
+from os import path
 
 
 class gui:
@@ -12,8 +13,9 @@ class gui:
         root.geometry("800x600")
         root.resizable(width=False, height=False)
         style = ttk.Style(root)
-        root.tk.call("source", "sudoku\\gui\\forest-light.tcl")
-        root.tk.call("source", "sudoku\\gui\\forest-dark.tcl")
+        print(__file__)
+        root.tk.call("source", path.join(path.dirname(__file__), 'forest-light.tcl'))
+        root.tk.call("source", path.join(path.dirname(__file__), 'forest-dark.tcl'))
         style.theme_use("forest-dark")
 
         info = ttk.Frame(root)
