@@ -23,7 +23,6 @@ class Puzzle:
         self.checked = defaultdict(lambda: defaultdict(lambda: []))
         if not (vals is None):
             self._assign_vals(vals)
-            self.parent.load(vals)
 
     def __getitem__(self, pos):
         return self.cells.__getitem__(pos)
@@ -135,7 +134,7 @@ class Puzzle:
     def solve(self, prnt=False):
         solved = std_solve(self, prnt)
         if not solved:
-            nishio(self)
+            nishio(self, prnt)
         if prnt:
             print("SOLVED")
 

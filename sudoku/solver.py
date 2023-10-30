@@ -52,7 +52,7 @@ def std_solve(p, prnt=False) -> bool:
     return False
 
 
-def nishio(p):
+def nishio(p, prnt=False):
     for cell in p.cells.flatten():
         if not p.cells_unsolved:
             return
@@ -64,27 +64,32 @@ def nishio(p):
                 p.update_cell(cell.pos, vals[0])
                 changes = "######################################################################\n"
                 changes += f"NISHIO METHOD\nUpdate Cell: {cell.pos}, {vals[0]}\n"
-                print(changes)
+                if prnt:
+                    print(changes)
                 solved = std_solve(p)
                 if solved:
-                    print(
-                        "######################################################################"
-                    )
+                    if prnt:
+                        print(
+                            "######################################################################"
+                        )
                     return
                 else:
                     nishio(p)
             except:
-                print(f"NISHIO METHOD BRANCH FAIL\n")
+                if prnt:
+                    print(f"NISHIO METHOD BRANCH FAIL\n")
                 p.copy(puzzle_snapshot)
                 p.update_cell(p[cell.pos].pos, vals[1])
                 changes = "######################################################################\n"
                 changes += f"NISHIO METHOD\nUpdate Cell: {cell.pos}, {vals[1]}\n"
-                print(changes)
+                if prnt:
+                    print(changes)
                 solved = std_solve(p)
                 if solved:
-                    print(
-                        "######################################################################"
-                    )
+                    if prnt:
+                        print(
+                            "######################################################################"
+                        )
                     return
                 else:
                     nishio(p)
