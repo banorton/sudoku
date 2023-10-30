@@ -20,11 +20,11 @@ class gui:
 
         info = ttk.Frame(root)
         solve_btn = ttk.Button(info, text="Solve", command=self.solve)
-        clear_btn = ttk.Button(info, text="Clear", command=self.clear)
-        load_image_btn = ttk.Button(info, text="Load Image", command=self.load_image)
         solve_btn.pack(fill="x", pady=10)
+        clear_btn = ttk.Button(info, text="Clear", command=self.clear)
         clear_btn.pack(fill="x", pady=10)
-        load_image_btn.pack(fill="x", pady=10)
+        # load_image_btn = ttk.Button(info, text="Load Image", command=self.load_image)
+        # load_image_btn.pack(fill="x", pady=10)
         info.pack(side="left", padx=10)
 
         puzzle = ttk.Frame(root)
@@ -67,5 +67,5 @@ class gui:
     def clear(self):
         self.parent.clear()
 
-    def load_image(self):
-        self.parent.load_image()
+    # def load_image(self):
+    #     self.parent.load_image()
