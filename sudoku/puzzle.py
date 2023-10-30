@@ -182,6 +182,7 @@ class PuzzleGUI:
                     self.updateGUI(cell.pos, "")
 
     def match_Puzzle_with_GUI(self):
+        self.puzzle.clear()
         for r, row in enumerate(self.gui.entries):
             for c, entry in enumerate(row):
                 val = entry.get()
