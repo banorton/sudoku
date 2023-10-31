@@ -7,6 +7,7 @@ This project was written completely in Python using **numpy**, and **tkinter** f
 
 I originally wrote this project with a very bare-bones framework just to get it working. However, I realized I wanted something more robust so that I could add features in the future that I was interested in like the ability to create puzzles, walk the user through solving a puzzle, etc. I also wanted a project that would help me start thinking about system design and how to plan for the future. I'm still constantly trying to rethink the design to make it make more sense and cut out unnecessary code. The system is currently laid out as follows.
 
+```
 PuzzleGUI
 ├── GUI
 └── Puzzle
@@ -20,6 +21,7 @@ PuzzleGUI
 Solver
 Helpers
 Generic
+```
 
 At the top is a **PuzzleGUI** object. This object contains all of the information and objects used for a particular instance of a puzzle. It also acts as the bridge between the backend of the puzzle/puzzle-solver and the front end that displays the puzzle. Each PuzzleGUI has two main objects, a **Gui** object and a **Puzzle** object.
 
