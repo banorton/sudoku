@@ -41,19 +41,18 @@ There are 9 boxes in a Sudoku puzzle, each of which contains 9 cells. The **Box 
 # Solving Algorithms
 All the code used to solve the puzzles is in **solver.py** The code was written to solve Sudoku puzzles similar to the way a human would solve the puzzle. That is by finding the most obvious clues first (naked and hidden singles), and working its way to more complicated clues (naked and hidden doubles, triples, quadruples, etc.). This was done intentionally so that I can eventually implement a mode that guides the user while solving the puzzle. The goal would be to explain each piece of logic one at a time until the puzzle is solved so that even someone who has never played Sudoku before could find, or at least understand, the solution to the puzzle.
 
-When the regular algorithms can't make any further progress on the puzzle, I have implemented an algorithm for the **nishio** method. This method is essentially just guess and check. When the solving comes to a halt, there is usually a naked or hidden double somewhere in the puzzle. This means that there is a cell that can only contain 1 of 2 possible values. The nishio method would involve picking 1 of those 2 values and then to continue trying to solve the puzzle. If, while solving, a contradiction is reached, then the value that was picked must be incorrect. The puzzle is reset back to when the choice was made and the other possible value is used. This is, slightly more complicated because it is implemented as a recursive algorithm so that if the solving comes to a halt again after picking 1 of 2 possible values, the nishio method is called again. However, this method should only be used as a last resort, since calling it without having solved any of the cells would cause so many branch points that the puzzle would likely never get solved.
+When the regular algorithms can't make any further progress on the puzzle, I have implemented an algorithm for the **nishio** method. This method is essentially just guess and check. When the solving comes to a halt, there is usually a naked or hidden double somewhere in the puzzle. This means that there is a cell that can only contain 1 of 2 possible values. The nishio method would involve picking 1 of those 2 values and then to continue trying to solve the puzzle. If, while solving, a contradiction is reached, then the value that was picked must be incorrect. The puzzle is reset back to when the choice was made and the other possible value is used. This method is slightly more complicated because it is implemented as a recursive algorithm so that if the solving comes to a halt again after picking 1 of 2 possible values, the nishio method is called again. However, this method should only be used as a last resort, since calling it without having solved any of the cells would cause so many branch points that the puzzle would likely never get solved.
 
 
 # Lessons Learned
-I learned many things while making this project. First and foremost is that often my eyes are too big for my stomach. I can think of an endless amount of features I want to add at the start of the project, but that can often be a hinderance. If your intentions are too gradiose, it can be hard to know where to begin. It can make the first step of designing the system feel overwelming. However, if you don't think far enough into the future, a lot of refactoring has to be done which takes a lot of time. There seems to be a balance here. More specifically, I learned a little bit about how to make a python package. I didn't even what __init__ files were before this project. I used this project as a way to get practice using functionalities of python that I wasn't used to using.
+- I learned the basics of tkinter to make the GUI.
+- I learned more about how to use git and github for development.
+- I learned about how to make a python package. I learned how to use __init__ files.
+- First and foremost, I learned that often my eyes are too big for my stomach. I can think of an endless amount of features I want to add at the start of a project, but that can often be a hinderance. If your intentions are too gradiose, it can be hard to know where to begin. However, if you don't think far enough into the future, a lot of rethinking and rewriting has to be done which takes a lot of time. A balance seems to be required.
 
 
 # TODOs (in no particular order)
-Implement a solver guide that guides the user in how to solve the puzzle step by step.
-Implement a neural network to solve the puzzles.
-Consolidate and clean up the solving algorithm for hidden clues.
-Allow the user to upload an image of a Sudoku puzzle to get the solution.
-Let the nishio algorithm split at clues with more than 2 values if necessary.
-Use a hashmap to store the counts of notes in rows, cols, and boxes to make algorithms faster.
-Implement solving algorithms that are faster but not necessary "user friendly".
-Add the ability to generate puzzles of different difficulties.
+- Implement a solver guide that guides the user in how to solve the puzzle step by step.
+- Allow the user to upload an image of a Sudoku puzzle to get the solution.
+- Add the ability to generate puzzles of different difficulties.
+- Implement a neural network to solve the puzzles.
