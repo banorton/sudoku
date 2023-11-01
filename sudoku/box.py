@@ -61,16 +61,6 @@ class Box_Array(Array):
                 arr[row].append(Box(box_dim, (row, col)))
         return arr
 
-    def _assign_vals(self, vals):
-        return
-        # if isinstance(vals, np.ndarray):
-        #     vals = np.array(vals)
-        # vals = np.reshape(vals, self.cell_dim)
-        # num_row, num_col = self.cell_dim
-        # for m in range(num_row):
-        #     for n in range(num_col):
-        #         self.update_cell((m, n), vals[m, n])
-
     def to_cell_arr(self) -> Cell_Array:
         arr = [[] for _ in range(self.cell_dim[0])]
         for col_num in range(self.dim[1]):
