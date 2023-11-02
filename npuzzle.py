@@ -30,9 +30,11 @@ class Cell:
         self._val = new_val
         self.notes = set((new_val,))
         self.parent.np[self.pos] = new_val
-        self.parent.unsolved = 81
+        self.parent.unsolved -= 1
         if not ns.is_valid(self.parent):
             raise Exception()
+        r, c = self.pos
+        self.parent.del_notes(val=new_val, row=r, col=c, box=self.box, save=self.pos)
 
     def __str__(self):
         return f"{self.val}"
@@ -46,6 +48,7 @@ class Cell:
 
 class Puzzle:
     def __init__(self, vals=None):
+        self.unsolved = 81
         self.cells = []
         self.box = [[] for _ in range(9)]
         self.row = [[] for _ in range(9)]
@@ -53,11 +56,10 @@ class Puzzle:
         self.np = None
         self._init(vals)
         self.checked = defaultdict(lambda: defaultdict(lambda: []))
-        self.unsolved = 81
 
     def __setitem__(self, pos, new_val):
         cell = self.__getitem__(pos)
-        cell.val = new_val
+        cell.val = int(new_val)
 
     def __getitem__(self, pos):
         res = None
@@ -95,15 +97,36 @@ class Puzzle:
         else:
             arr = np.zeros((9, 9), int)
         self.np = arr
+
+        # Initialize the cells.
         for r, row in enumerate(arr):
             for c, val in enumerate(row):
-                cell = Cell(val=val, pos=(r, c), box=p2b((r, c)), parent=self)
+                cell = Cell(pos=(r, c), box=p2b((r, c)), parent=self)
                 self.cells.append(cell)
                 self.row[r].append(cell)
                 self.col[c].append(cell)
                 self.box[cell.box].append(cell)
 
+        # Assign all values after initialization to make sure notes are deleted properly.
+        for r, row in enumerate(arr):
+            for c, val in enumerate(row):
+                if val != 0:
+                    self[r, c] = val
+
     def del_notes(self, val=[], row=[], col=[], box=[], save=[]):
+        if isinstance(val, int):
+            val = [val]
+        if isinstance(row, int):
+            row = [row]
+        if isinstance(col, int):
+            col = [col]
+        if isinstance(box, int):
+            box = [box]
+        if isinstance(save, tuple):
+            if isinstance(save[0], int):
+                save = [save]
+            elif isinstance(save[0], tuple):
+                save = list(save)
         for val in val:
             for rnum in row:
                 self.del_notes_row(val, rnum)
