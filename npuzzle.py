@@ -5,7 +5,10 @@ from helpers import p2b
 class Cell:
     def __init__(self, val=0, pos=None, box=None, parent=None):
         self._val = val
-        self.notes = set()
+        if val == 0:
+            self.notes = set((1, 2, 3, 4, 5, 6, 7, 8, 9))
+        else:
+            self.notes = set().add(val)
         self.pos = pos
         self.box = box
         self.parent = parent
