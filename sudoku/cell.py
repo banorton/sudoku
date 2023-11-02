@@ -27,6 +27,7 @@ class Cell:
             i, j = self.pos
             self.parent.np[i, j] = new_val
         self._val = new_val
+        self.notes = set().add(new_val)
 
 
 class Cell_Array(Array):
