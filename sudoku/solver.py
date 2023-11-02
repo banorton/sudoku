@@ -104,13 +104,14 @@ def nishio(p, prnt=False):
 ############################################################################
 # GENERALIZED
 
-"""
-For a given number (num), if exactly num amount of cells, in a row or column or box, contain exactly num amount of notes and those notes are equal, eliminate those values from the notes of the other cells in the respective row, column, or box.
 
-Example:
-While checking row 3 with num=2, cells at positions (3,3) and (3,7) are found to have only the 2 notes {4,8}; Notes 4 and 8 will be removed from all other cells in row 3. If the cell at position (3,0) had the notes {1,3,4,7,8}, afterwards it would have the notes {1,3,7}.
-"""
 def find_naked_general(p, num):
+    """
+    For a given number (num), if exactly num amount of cells, in a row or column or box, contain exactly num amount of notes and those notes are equal, eliminate those values from the notes of the other cells in the respective row, column, or box.
+
+    Example:
+    While checking row 3 with num=2, cells at positions (3,3) and (3,7) are found to have only the 2 notes {4,8}; Notes 4 and 8 will be removed from all other cells in row 3. If the cell at position (3,0) had the notes {1,3,4,7,8}, afterwards it would have the notes {1,3,7}.
+    """
     assert num > 0
     if num == 1:
         changes = ""
@@ -161,46 +162,35 @@ def find_naked_general(p, num):
     return changes
 
 
-"""
-For a given number (num), if exactly num amount of cells, in a row or column or box, contain more than num amount of notes but share the same num amount of notes, eliminate all but the shared notes in those cells. Eliminate the shared notes from the notes in other cells in the respective row, column, or box.
-
-Example:
-While checking row 3 with num=2, cells only at positions (3,3) and (3,7) are found to have more than 2 notes, {1,3,4,6,8} and {2,4,7,8}, but share notes 4 and 8; Notes 4 and 8 will be removed from all other notes in the cells of row 3. All notes exluding 4 and 8, for the cells at positions (3,3) and (3,7), will be removed.
-"""
 def find_hidden_general(p, num):
+    """
+    For a given number (num), if exactly num amount of cells, in a row or column or box, contain more than num amount of notes but share the same num amount of notes, eliminate all but the shared notes in those cells. Eliminate the shared notes from the notes in other cells in the respective row, column, or box.
+
+    Example:
+    While checking row 3 with num=2, cells only at positions (3,3) and (3,7) are found to have more than 2 notes, {1,3,4,6,8} and {2,4,7,8}, but share notes 4 and 8; Notes 4 and 8 will be removed from all other notes in the cells of row 3. All notes exluding 4 and 8, for the cells at positions (3,3) and (3,7), will be removed.
+    """
     assert num > 0
     if num == 1:
         changes = ""
-        for row_num in range(9):
-            row = p.get_row(row_num)
-            for col_num in range(9):
-                pos = (row_num, col_num)
-                cell = p.get_cell(pos)
-                if cell.val != 0:
-                    continue
-                box_pos, _ = puzzle_pos_to_box_pos(p, pos)
-                col, box = p.get_col(col_num), p.get_box(box_pos)
+        for row_num, row in enumerate(p.cells):
+            for col_num, cell in enumerate(row):
+                if cell.val == 0:
+                    col, box = p[:, col_num], p.get_box(cell.box_pos)
+                    rnotes, cnotes, bnotes = [], [], []
+                    [rnotes.extend(list(row_cell.notes)) for row_cell in row]
+                    [cnotes.extend(list(col_cell.notes)) for col_cell in col]
+                    [bnotes.extend(list(box_cell.notes)) for box_cell in box.flatten()]
 
-                row_notes = []
-                for row_cell in row:
-                    row_notes.extend(list(row_cell.notes))
-                col_notes = []
-                for col_cell in col:
-                    col_notes.extend(list(col_cell.notes))
-                box_notes = []
-                for box_cell in box.flatten():
-                    box_notes.extend(list(box_cell.notes))
-
-                for val in list(cell.notes):
-                    if box_notes.count(val) == 1:
-                        p.update_cell(pos, val)
-                        changes += f"Update Cell: {pos}, {val}\n"
-                    elif row_notes.count(val) == 1:
-                        p.update_cell(pos, val)
-                        changes += f"Update Cell: {pos}, {val}\n"
-                    elif col_notes.count(val) == 1:
-                        p.update_cell(pos, val)
-                        changes += f"Update Cell: {pos}, {val}\n"
+                    for val in cell.notes:
+                        if bnotes.count(val) == 1:
+                            p.update_cell(cell.pos, val)
+                            changes += f"Update Cell: {cell.pos}, {val}\n"
+                        elif rnotes.count(val) == 1:
+                            p.update_cell(cell.pos, val)
+                            changes += f"Update Cell: {cell.pos}, {val}\n"
+                        elif cnotes.count(val) == 1:
+                            p.update_cell(cell.pos, val)
+                            changes += f"Update Cell: {cell.pos}, {val}\n"
         return changes
 
     changes, changes_cells = "", ""
