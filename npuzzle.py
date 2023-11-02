@@ -1,14 +1,22 @@
 import numpy as np
 from helpers import p2b
+from math import prod
+import numpy as np
+from collections import defaultdict
+import tkinter as tk
+from math import prod
+import nsolver as ns
 
 
 class Cell:
     def __init__(self, val=0, pos=None, box=None, parent=None):
+        if not isinstance(val, int):
+            val = int(val)
         self._val = val
         if val == 0:
-            self.notes = set((1, 2, 3, 4, 5, 6, 7, 8, 9))
+            self.notes = set(range(1, 10))
         else:
-            self.notes = set().add(val)
+            self.notes = set((val,))
         self.pos = pos
         self.box = box
         self.parent = parent
@@ -20,14 +28,20 @@ class Cell:
     @val.setter
     def val(self, new_val):
         self._val = new_val
-        self.notes = set().add(new_val)
+        self.notes = set((new_val,))
         self.parent.np[self.pos] = new_val
+        self.parent.unsolved = 81
+        if not ns.is_valid(self.parent):
+            raise Exception()
 
     def __str__(self):
         return f"{self.val}"
 
     def __repr__(self):
         return f"{self.pos}"
+
+    def __int__(self):
+        return self.val
 
 
 class Puzzle:
@@ -38,6 +52,8 @@ class Puzzle:
         self.col = [[] for _ in range(9)]
         self.np = None
         self._init(vals)
+        self.checked = defaultdict(lambda: defaultdict(lambda: []))
+        self.unsolved = 81
 
     def __setitem__(self, pos, new_val):
         cell = self.__getitem__(pos)
@@ -86,3 +102,42 @@ class Puzzle:
                 self.row[r].append(cell)
                 self.col[c].append(cell)
                 self.box[cell.box].append(cell)
+
+    def del_notes(self, val=[], row=[], col=[], box=[], save=[]):
+        for val in val:
+            for rnum in row:
+                self.del_notes_row(val, rnum)
+            for cnum in col:
+                self.del_notes_col(val, cnum)
+            for bnum in box:
+                self.del_notes_box(val, bnum)
+            if save:
+                for pos in save:
+                    self[pos[0]][pos[1]].notes.add(val)
+
+    def del_notes_row(self, val, rnum):
+        for cell in self.row[rnum]:
+            cell.notes.discard(val)
+
+    def del_notes_col(self, val, cnum):
+        for cell in self.col[cnum]:
+            cell.notes.discard(val)
+
+    def del_notes_box(self, val, bnum):
+        for cell in self.box[bnum]:
+            cell.notes.discard(val)
+
+    def copy(self, p):
+        self.cells = p.cells
+        self.box = p.box
+        self.row = p.row
+        self.col = p.col
+        self.np = p.np
+        self.checked = p.checked
+
+    def clear(self):
+        for row in self.row:
+            for cell in row:
+                cell.val = 0
+                cell.notes = set(range(1, 10))
+        self.checked = defaultdict(lambda: defaultdict(lambda: []))
