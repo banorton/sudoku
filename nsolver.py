@@ -3,31 +3,58 @@ from collections import defaultdict
 from copy import deepcopy as dcopy
 
 
+# def is_valid(p) -> bool:
+#     # Check boxs for duplicates.
+#     for bnum, box in enumerate(p.box):
+#         box = np.array([int(cell) for cell in box])
+#         box = np.delete(box, np.where(box == 0))
+#         if box.size > np.unique(box).size:
+#             return (False, f"box {bnum}")
+
+#     # Check rows for duplicates.
+#     for rnum, row in enumerate(p.row):
+#         row = np.array([int(cell) for cell in row])
+#         row = np.delete(row, np.where(row == 0))
+#         if row.size > np.unique(row).size:
+#             return (False, f"row {rnum}")
+
+#     # Check columns for duplicates.
+#     for cnum, col in enumerate(p.col):
+#         col = np.array([int(cell) for cell in col])
+#         col = np.delete(col, np.where(col == 0))
+#         if col.size > np.unique(col).size:
+#             return (False, f"col {cnum}")
+
+#     for cell in p.cells:
+#         if not list(cell.notes):
+#             return (False, f"cell {cell.pos}")
+
+#     # Return True if the puzzle is valid.
+#     return True, ""
+
+
 def is_valid(p) -> bool:
-    # Check boxs for duplicates.
-    for bnum, box in enumerate(p.box):
-        box = np.array([int(cell) for cell in box])
-        box = np.delete(box, np.where(box == 0))
-        if box.size > np.unique(box).size:
-            return (False, f"box {bnum}")
-
-    # Check rows for duplicates.
-    for rnum, row in enumerate(p.row):
-        row = np.array([int(cell) for cell in row])
-        row = np.delete(row, np.where(row == 0))
-        if row.size > np.unique(row).size:
-            return (False, f"row {rnum}")
-
-    # Check columns for duplicates.
-    for cnum, col in enumerate(p.col):
-        col = np.array([int(cell) for cell in col])
-        col = np.delete(col, np.where(col == 0))
-        if col.size > np.unique(col).size:
-            return (False, f"col {cnum}")
-
+    # Count the occurrence of values in every row, column, and box.
+    rcounts = [[0 for _ in range(10)] for _ in range(9)]
+    ccounts = [[0 for _ in range(10)] for _ in range(9)]
+    bcounts = [[0 for _ in range(10)] for _ in range(9)]
     for cell in p.cells:
-        if not list(cell.notes):
-            return (False, f"cell {cell.pos}")
+        (r, c), b = cell.pos, cell.box
+        if len(cell.notes) == 0:
+            return (False, f"Cell {cell.pos}")
+        rcounts[r][cell.val] += 1
+        ccounts[c][cell.val] += 1
+        bcounts[b][cell.val] += 1
+
+    # Check every row, column, and box for duplicate values.
+    for rct, cct, bct in zip(rcounts, ccounts, bcounts):
+        for rnum, cnum, bnum in zip(rct[1:], cct[1:], bct[1:]):
+            if rnum > 1:
+                return (False, f"Row {rnum}")
+            if cnum > 1:
+                return (False, f"Col {cnum}")
+            if bnum > 1:
+                return (False, f"Box {bnum}")
 
     # Return True if the puzzle is valid.
     return True, ""
