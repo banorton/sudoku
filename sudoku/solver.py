@@ -1,379 +1,267 @@
 import numpy as np
-from .helpers import *
 from collections import defaultdict
 from copy import deepcopy as dcopy
 
 
-def is_valid(p) -> bool:
-    # Check boxs for duplicates.
-    for box in p.boxes.flatten():
-        box = box.np.flatten()
-        box = np.delete(box, np.where(box == 0))
-        if box.size > np.unique(box).size:
-            return False
+def is_valid(p):
+    # Count the occurrence of values in every row, column, and box.
+    rcounts = [[0 for _ in range(10)] for _ in range(9)]
+    ccounts = [[0 for _ in range(10)] for _ in range(9)]
+    bcounts = [[0 for _ in range(10)] for _ in range(9)]
+    for cell in p.cells:
+        (r, c), b = cell.pos, cell.box
+        if len(cell.notes) == 0:
+            return (False, f"Cell {cell.pos}")
+        rcounts[r][cell.val] += 1
+        ccounts[c][cell.val] += 1
+        bcounts[b][cell.val] += 1
 
-    # Check rows for duplicates.
-    for row in p.cells.np:
-        row = np.delete(row, np.where(row == 0))
-        if row.size > np.unique(row).size:
-            return False
-
-    # Check columns for duplicates.
-    for col in p.cells.np.T:
-        col = np.delete(col, np.where(col == 0))
-        if col.size > np.unique(col).size:
-            return False
+    # Check every row, column, and box for duplicate values.
+    for rct, cct, bct in zip(rcounts, ccounts, bcounts):
+        for rnum, cnum, bnum in zip(rct[1:], cct[1:], bct[1:]):
+            if rnum > 1:
+                return (False, f"Row {rnum}")
+            if cnum > 1:
+                return (False, f"Col {cnum}")
+            if bnum > 1:
+                return (False, f"Box {bnum}")
 
     # Return True if the puzzle is valid.
-    return True
+    return True, ""
 
 
-def std_solve(p, prnt=False) -> bool:
+def std_solve(p):
     if not is_valid(p):
         print("Not a valid puzzle.")
-    if not p.cells_unsolved and prnt:
-        print("SOLVED")
-        return True
 
+    # fmt:off
     ct = 0
     while ct < 10:
+        diffs = ""
+        header = f"______________________________________________________________________"
         # Look for increasingly more difficult clues to find.
-        find_naked_singles(p, prnt)
-        find_hidden_singles(p, prnt)
-        find_inline(p, prnt)
-        find_naked_doubles(p, prnt)
-        find_hidden_doubles(p, prnt)
-        find_naked_triples(p, prnt)
-        find_hidden_triples(p, prnt)
-        find_naked_quadruples(p, prnt)
-        find_hidden_quadruples(p, prnt)
+        diffs += find_naked_general(p, 1)
+        diffs += find_hidden_general(p, 1)
+        diffs += find_inline(p)
+        diffs += find_naked_general(p, 2)
+        diffs += find_hidden_general(p, 2)
+        diffs += find_naked_general(p, 3)
+        diffs += find_hidden_general(p, 3)
+        diffs += find_naked_general(p, 4)
+        diffs += find_hidden_general(p, 4)
+        footer = f"cells unsolved: {p.unsolved}\n______________________________________________________________________\n"
+        if not diffs:
+            ct += 1
+            continue
+        else:
+            diffs = header + diffs + footer
+            print(diffs)
 
-        # Check if all of the cells have been solved.
-        if not p.cells_unsolved:
+        # Check if the puzzle is solved.
+        if not p.unsolved:
             return True
         ct += 1
+    # fmt:on
     return False
 
 
-def nishio(p, prnt=False):
-    for cell in p.cells.flatten():
+def nishio(p, n=2):
+    print("############################## NISHIO ################################")
+    for cell in p.cells:
         # Check if all of the cells have been solved.
-        if not p.cells_unsolved:
+        if not p.unsolved:
             return
-        solved = False
 
         # If there is a naked double in the puzzle, test each value. Call nishio again if solving stalls.
-        if len(cell.notes) == 2:
+        solved = False
+        if len(cell.notes) == n:
             vals = list(cell.notes)
             puzzle_snapshot = dcopy(p)
             try:
-                p.update_cell(cell.pos, vals[0])
-                changes = "######################################################################\n"
-                changes += f"NISHIO METHOD\nUpdate Cell: {cell.pos}, {vals[0]}\n"
-                if prnt:
-                    print(changes)
+                print(
+                    "############################# BRANCH 1 ###############################"
+                )
+                p[cell.pos] = vals[0]
                 solved = std_solve(p)
                 if solved:
-                    if prnt:
-                        print(
-                            "######################################################################"
-                        )
                     return
                 else:
                     nishio(p)
             except:
-                if prnt:
-                    print(f"NISHIO METHOD BRANCH FAIL\n")
+                print(
+                    "############################# BRANCH 2 ###############################"
+                )
                 p.copy(puzzle_snapshot)
-                p.update_cell(p[cell.pos].pos, vals[1])
-                changes = "######################################################################\n"
-                changes += f"NISHIO METHOD\nUpdate Cell: {cell.pos}, {vals[1]}\n"
-                if prnt:
-                    print(changes)
+                p[cell.pos] = vals[1]
                 solved = std_solve(p)
                 if solved:
-                    if prnt:
-                        print(
-                            "######################################################################"
-                        )
                     return
                 else:
                     nishio(p)
 
 
-############################################################################
-# GENERALIZED
-
-
-def find_naked_general(p, num):
-    """
-    For a given number (num), if exactly num amount of cells, in a row or column or box, contain exactly num amount of notes and those notes are equal, eliminate those values from the notes of the other cells in the respective row, column, or box.
-
-    Example:
-    While checking row 3 with num=2, cells at positions (3,3) and (3,7) are found to have only the 2 notes {4,8}; Notes 4 and 8 will be removed from all other cells in row 3. If the cell at position (3,0) had the notes {1,3,4,7,8}, afterwards it would have the notes {1,3,7}.
-    """
-    assert num > 0
-    if num == 1:
-        changes = ""
-        for cell in p.cells.flatten():
+def find_naked_general(p, n):
+    assert n > 0
+    if n == 1:
+        diffs = ""
+        for cell in p.cells:
             if (len(cell.notes) == 1) and (cell.val == 0):
                 [note] = cell.notes
-                p.update_cell(cell.pos, note)
-                changes += f"Update Cell: {cell.pos}, {note}\n"
-        return changes
+                p[cell.pos] = note
+                diffs += f"Update Cell: {cell.pos}, {note}\n"
+        return "" if not diffs else "\nNAKED n=1\n" + diffs + "\n"
 
-    changes = ""
+    diffs = ""
     # Row
-    for row_num, row in enumerate(p.cells):
+    for rnum, row in enumerate(p.row):
         checks = defaultdict(lambda: [])
         for cell in row:
             notes = tuple(sorted(cell.notes))
-            if len(notes) == num:
+            if len(notes) == n:
                 checks[notes].append(cell.pos)
                 posns = tuple(checks[notes])
-                if (posns not in p.checked[num]) and (len(posns) == num):
-                    p.checked[num][posns].extend(notes)
-                    p.del_notes(vals=notes, rows=[row_num], save=posns)
-                    changes += f"Del Notes: row {row_num}, vals {notes}, save {posns}\n"
+                if (posns not in p.checked[n]) and (len(posns) == n):
+                    p.checked[n][posns].extend(notes)
+                    p.del_notes(val=notes, row=rnum, save=posns)
+                    diffs += f"del notes: row {rnum}, vals {notes}, save {posns}\n"
     # Col
-    for col_num, col in enumerate(p.cells.T):
+    for cnum, col in enumerate(p.col):
         checks = defaultdict(lambda: [])
         for cell in col:
             notes = tuple(sorted(cell.notes))
-            if len(notes) == num:
+            if len(notes) == n:
                 checks[notes].append(cell.pos)
                 posns = tuple(checks[notes])
-                if (posns not in p.checked[num]) and (len(posns) == num):
-                    p.checked[num][posns].extend(notes)
-                    p.del_notes(vals=notes, cols=[col_num], save=posns)
-                    changes += f"Del Notes: col {col_num}, vals {notes}, save {posns}\n"
+                if (posns not in p.checked[n]) and (len(posns) == n):
+                    p.checked[n][posns].extend(notes)
+                    p.del_notes(val=notes, col=cnum, save=posns)
+                    diffs += f"del notes: col {cnum}, vals {notes}, save {posns}\n"
     # Box
-    for box in p.boxes.flatten():
+    for bnum, box in enumerate(p.box):
         checks = defaultdict(lambda: [])
-        for cell in box.flatten():
+        for cell in box:
             notes = tuple(sorted(cell.notes))
-            if len(notes) == num:
+            if len(notes) == n:
                 checks[notes].append(cell.pos)
                 posns = tuple(checks[notes])
-                if (posns not in p.checked[num]) and (len(posns) == num):
-                    p.checked[num][posns].extend(notes)
-                    p.del_notes(vals=notes, boxes=[box.pos], save=posns)
-                    changes += f"Del Notes: box {box.pos}, vals {notes}, save {posns}\n"
-    return changes
+                if (posns not in p.checked[n]) and (len(posns) == n):
+                    p.checked[n][posns].extend(notes)
+                    p.del_notes(val=notes, box=bnum, save=posns)
+                    diffs += f"del notes: box {bnum}, vals {notes}, save {posns}\n"
+    return "" if not diffs else f"\nNAKED n={n}\n" + diffs + "\n"
 
 
-def find_hidden_general(p, num):
-    """
-    For a given number (num), if exactly num amount of cells, in a row or column or box, contain more than num amount of notes but share the same num amount of notes, eliminate all but the shared notes in those cells. Eliminate the shared notes from the notes in other cells in the respective row, column, or box.
+def find_hidden_general(p, n):
+    assert n > 0
+    if n == 1:
+        diffs = ""
+        for cell in p.cells:
+            if cell.val == 0:
+                rnotes, cnotes, bnotes = [], [], []
+                (rnum, cnum), bnum = cell.pos, cell.box
+                [rnotes.extend(list(rcell.notes)) for rcell in p.row[rnum]]
+                [cnotes.extend(list(ccell.notes)) for ccell in p.col[cnum]]
+                [bnotes.extend(list(bcell.notes)) for bcell in p.box[bnum]]
+                for val in cell.notes:
+                    if bnotes.count(val) == 1:
+                        p[cell.pos] = val
+                        diffs += f"Update Cell: {cell.pos}, {val}\n"
+                    elif rnotes.count(val) == 1:
+                        p[cell.pos] = val
+                        diffs += f"Update Cell: {cell.pos}, {val}\n"
+                    elif cnotes.count(val) == 1:
+                        p[cell.pos] = val
+                        diffs += f"Update Cell: {cell.pos}, {val}\n"
+        return "" if not diffs else "\nHIDDEN n=1\n" + diffs + "\n"
 
-    Example:
-    While checking row 3 with num=2, cells only at positions (3,3) and (3,7) are found to have more than 2 notes, {1,3,4,6,8} and {2,4,7,8}, but share notes 4 and 8; Notes 4 and 8 will be removed from all other notes in the cells of row 3. All notes exluding 4 and 8, for the cells at positions (3,3) and (3,7), will be removed.
-    """
-    assert num > 0
-    if num == 1:
-        changes = ""
-        for row_num, row in enumerate(p.cells):
-            for col_num, cell in enumerate(row):
-                if cell.val == 0:
-                    col, box = p[:, col_num], p.get_box(cell.box_pos)
-                    rnotes, cnotes, bnotes = [], [], []
-                    [rnotes.extend(list(row_cell.notes)) for row_cell in row]
-                    [cnotes.extend(list(col_cell.notes)) for col_cell in col]
-                    [bnotes.extend(list(box_cell.notes)) for box_cell in box.flatten()]
+    diffs1, diffs2 = "", ""
+    rcounts = [defaultdict(lambda: []) for _ in range(9)]
+    ccounts = [defaultdict(lambda: []) for _ in range(9)]
+    bcounts = [defaultdict(lambda: []) for _ in range(9)]
+    for cell in p.cells:
+        (r, c), b = cell.pos, cell.box
+        notes = sorted(cell.notes)
+        for val in notes:
+            rcounts[r][val].append(cell.pos)
+            ccounts[c][val].append(cell.pos)
+            bcounts[b][val].append(cell.pos)
 
-                    for val in cell.notes:
-                        if bnotes.count(val) == 1:
-                            p.update_cell(cell.pos, val)
-                            changes += f"Update Cell: {cell.pos}, {val}\n"
-                        elif rnotes.count(val) == 1:
-                            p.update_cell(cell.pos, val)
-                            changes += f"Update Cell: {cell.pos}, {val}\n"
-                        elif cnotes.count(val) == 1:
-                            p.update_cell(cell.pos, val)
-                            changes += f"Update Cell: {cell.pos}, {val}\n"
-        return changes
-
-    changes, changes_cells = "", ""
-    # Row
-    for row_num, row in enumerate(p.cells):
-        counts = defaultdict(lambda: [])
-        for cell in row:
-            notes = sorted(cell.notes)
-            for val in notes:
-                counts[val].append(cell.pos)
-        posns = defaultdict(lambda: [])
+    posns = defaultdict(lambda: [])
+    for rnum, counts in enumerate(rcounts):
         for key, value in counts.items():
             value = tuple(value)
-            if len(value) == num:
+            if len(value) == n:
                 posns[value].append(key)
-                if value in posns and len(posns[value]) == num:
-                    if value in p.checked[num]:
-                        continue
-                    else:
-                        p.checked[num][value].append(key)
-                    p.del_notes(vals=posns[value], rows=[row_num], save=value)
-                    changes += (
-                        f"Del Notes: row {row_num}, vals {posns[value]}, save {value}\n"
-                    )
-                    p.del_notes_cell(posns=value, save_vals=posns[value])
-                    changes_cells += f"Del Notes: cells {value}, save {posns[value]}\n"
-    # Col
-    for col_num in range(p.cell_dim[1]):
-        col = p.get_col(col_num)
+                if value in posns and len(posns[value]) == n:
+                    if not (value in p.checked[n]):
+                        p.checked[n][value].append(key)
+                        p.del_notes(val=posns[value], row=[rnum], save=value)
+                        diffs1 += f"del notes: row {rnum}, vals {posns[value]}, save {value}\n"
+                        p.del_notes_cell(posns=value, save_vals=posns[value])
+                        diffs2 += f"del notes: cells {value}, save {posns[value]}\n"
+    posns = defaultdict(lambda: [])
+    for cnum, counts in enumerate(ccounts):
+        for key, value in counts.items():
+            value = tuple(value)
+            if len(value) == n:
+                posns[value].append(key)
+                if value in posns and len(posns[value]) == n:
+                    if not (value in p.checked[n]):
+                        p.checked[n][value].append(key)
+                        p.del_notes(val=posns[value], col=[cnum], save=value)
+                        diffs1 += f"del notes: col {cnum}, vals {posns[value]}, save {value}\n"
+                        p.del_notes_cell(posns=value, save_vals=posns[value])
+                        diffs2 += f"del notes: cells {value}, save {posns[value]}\n"
+    posns = defaultdict(lambda: [])
+    for bnum, counts in enumerate(bcounts):
+        for key, value in counts.items():
+            value = tuple(value)
+            if len(value) == n:
+                posns[value].append(key)
+                if value in posns and len(posns[value]) == n:
+                    if not (value in p.checked[n]):
+                        if bnum == 1 and n == 2:
+                            print()
+                        p.checked[n][value].append(key)
+                        p.del_notes(val=posns[value], box=[bnum], save=value)
+                        diffs1 += f"del notes: box {bnum}, vals {posns[value]}, save {value}\n"
+                        p.del_notes_cell(posns=value, save_vals=posns[value])
+                        diffs2 += f"del notes: cells {value}, save {posns[value]}\n"
+    return "" if not (diffs1 + diffs2) else f"\nHIDDEN n={n}\n" + diffs1 + diffs2 + "\n"
+
+
+def find_inline(p):
+    diffs = ""
+    for box in p.box:
         counts = defaultdict(lambda: [])
-        for row_num, cell in enumerate(col):
+        for cell in box:
             notes = tuple(sorted(cell.notes))
             for val in notes:
                 counts[val].append(cell.pos)
-        posns = defaultdict(lambda: [])
         for key, value in counts.items():
-            value = tuple(value)
-            if len(value) == num:
-                posns[value].append(key)
-                if value in posns and len(posns[value]) == num:
-                    if value in p.checked[num]:
-                        continue
-                    else:
-                        p.checked[num][value].append(key)
-                    p.del_notes(vals=posns[value], cols=[col_num], save=value)
-                    changes += (
-                        f"Del Notes: col {col_num}, vals {posns[value]}, save {value}\n"
-                    )
-                    p.del_notes_cell(posns=value, save_vals=posns[value])
-                    changes_cells += f"Del Notes: cells {value}, save {posns[value]}\n"
-    # Box
-    for row in range(p.puzzle_dim[0]):
-        for col in range(p.puzzle_dim[1]):
-            box, counts = p.boxes[row, col].flatten(), defaultdict(lambda: [])
-            for cell in box:
-                notes = tuple(sorted(cell.notes))
-                for val in notes:
-                    counts[val].append(cell.pos)
-            posns = defaultdict(lambda: [])
-            for key, value in counts.items():
-                value = tuple(value)
-                if len(value) == num:
-                    posns[value].append(key)
-                    if value in posns and len(posns[value]) == num:
-                        if value in p.checked[num]:
-                            continue
-                        else:
-                            p.checked[num][value].append(key)
-                        p.del_notes(vals=posns[value], boxes=[(row, col)], save=value)
-                        changes += f"Del Notes: box {(row, col)}, vals {posns[value]}, save {value}\n"
-                        p.del_notes_cell(posns=value, save_vals=posns[value])
-                        changes_cells += (
-                            f"Del Notes: cells {value}, save {posns[value]}\n"
-                        )
-    return changes + changes_cells
-
-
-############################################################################
-# NAKED
-def find_naked_singles(p, prnt=False):
-    changes = find_naked_general(p, 1)
-    if prnt and changes:
-        print("NAKED SINGLES")
-        print(changes)
-    return changes
-
-
-def find_naked_doubles(p, prnt=False):
-    changes = find_naked_general(p, 2)
-    if prnt and changes:
-        print("NAKED DOUBLES")
-        print(changes)
-    return changes
-
-
-def find_naked_triples(p, prnt=False):
-    changes = find_naked_general(p, 3)
-    if prnt and changes:
-        print("NAKED TRIPLES")
-        print(changes)
-    return changes
-
-
-def find_naked_quadruples(p, prnt=False):
-    changes = find_naked_general(p, 4)
-    if prnt and changes:
-        print("NAKED QUADRUPLES")
-        print(changes)
-    return changes
-
-
-############################################################################
-# HIDDEN
-def find_hidden_singles(p, prnt=False):
-    changes = find_hidden_general(p, 1)
-    if prnt and changes:
-        print("HIDDEN SINGLES")
-        print(changes)
-    return changes
-
-
-def find_hidden_doubles(p, prnt=False):
-    changes = find_hidden_general(p, 2)
-    if prnt and changes:
-        print("HIDDEN DOUBLES")
-        print(changes)
-    return changes
-
-
-def find_hidden_triples(p, prnt=False):
-    changes = find_hidden_general(p, 3)
-    if prnt and changes:
-        print("HIDDEN TRIPLES")
-        print(changes)
-    return changes
-
-
-def find_hidden_quadruples(p, prnt=False):
-    changes = find_hidden_general(p, 4)
-    if prnt and changes:
-        print("HIDDEN QUADRUPLES")
-        print(changes)
-    return changes
-
-
-############################################################################
-# OTHER
-def find_inline(p, prnt=False):
-    changes = ""
-    for row in range(p.puzzle_dim[0]):
-        for col in range(p.puzzle_dim[1]):
-            box, counts = p.boxes[row, col].flatten(), defaultdict(lambda: [])
-            for cell in box:
-                notes = tuple(sorted(cell.notes))
-                for val in notes:
-                    counts[val].append(cell.pos)
-            for key, value in counts.items():
-                if len(value) == 2:
-                    if value[0][0] == value[1][0]:
-                        p.del_notes(vals=[key], rows=[value[0][0]], save=value)
-                        changes += (
-                            f"Del Notes: row {value[0][0]}, val {[key]}, save {value}\n"
-                        )
-                    elif value[0][1] == value[1][1]:
-                        p.del_notes(vals=[key], cols=[value[0][1]], save=value)
-                        changes += (
-                            f"Del Notes: col {value[0][1]}, val {[key]}, save {value}\n"
-                        )
-                if len(value) == 3:
-                    if value[0][0] == value[1][0] == value[2][0]:
-                        p.del_notes(vals=[key], rows=[value[0][0]], save=value)
-                        changes += (
-                            f"Del Notes: row {value[0][0]}, val {[key]}, save {value}\n"
-                        )
-                    elif value[0][1] == value[1][1] == value[2][1]:
-                        changes += (
-                            f"Del Notes: col {value[0][1]}, val {[key]}, save {value}\n"
-                        )
-    if prnt and changes:
-        print("INLINE")
-        print(changes)
-    return changes
-
-
-def find_xwing(p):
-    return
+            if len(value) == 2:
+                v00, v10 = value[0][0], value[1][0]
+                v01, v11 = value[0][1], value[1][1]
+                inlinehash1 = (tuple(value), v00, v10, "inline")
+                inlinehash2 = (tuple(value), v01, v11, "inline")
+                if v00 == v10 and inlinehash1 not in p.checked:
+                    p.del_notes(val=[key], row=[v00], save=value)
+                    diffs += f"del notes: row {v00}, val {[key]}, save {value}\n"
+                    p.checked[inlinehash1] = True
+                elif v01 == v11 and inlinehash2 not in p.checked:
+                    p.del_notes(val=[key], col=[v01], save=value)
+                    diffs += f"del notes: col {v01}, val {[key]}, save {value}\n"
+                    p.checked[inlinehash2] = True
+            if len(value) == 3:
+                v00, v10, v20 = value[0][0], value[1][0], value[2][0]
+                v01, v11, v21 = value[0][1], value[1][1], value[2][1]
+                inlinehash1 = (tuple(value), v00, v10, v20, "inline")
+                inlinehash2 = (tuple(value), v01, v11, v21, "inline")
+                if v00 == v10 == v20 and inlinehash1 not in p.checked:
+                    p.del_notes(val=[key], row=[v00], save=value)
+                    diffs += f"del notes: row {v00}, val {[key]}, save {value}\n"
+                    p.checked[inlinehash1] = True
+                elif v01 == v11 == v21 and inlinehash2 not in p.checked:
+                    diffs += f"del notes: col {v01}, val {[key]}, save {value}\n"
+                    p.checked[inlinehash2] = True
+    return "" if not diffs else "\nINLINE\n" + diffs + "\n"
