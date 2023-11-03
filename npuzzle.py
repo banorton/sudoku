@@ -150,6 +150,16 @@ class Puzzle:
         for cell in self.box[bnum]:
             cell.notes.discard(val)
 
+    def del_notes_cell(self, posns=[], vals=[], save_vals=[]):
+        for pos in posns:
+            if not vals:
+                self[pos].notes = set()
+            else:
+                for val in vals:
+                    self[pos].notes.discard(val)
+            for val in save_vals:
+                self[pos].notes.add(val)
+
     def copy(self, p):
         self.cells = p.cells
         self.box = p.box
