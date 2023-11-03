@@ -1,8 +1,7 @@
 import numpy as np
 from collections import defaultdict
-import tkinter as tk
+from math import ceil
 from sudoku.gui.gui import Puzzle_Frontend
-from sudoku.helpers import p2b
 from sudoku.solver import is_valid, std_solve, nishio
 
 
@@ -88,6 +87,11 @@ class Puzzle_Backend:
         else:
             arr = np.zeros((9, 9), int)
         self.np = arr
+
+        def p2b(ppos, bdimo=(3, 3), bdimi=(3, 3)):
+            brow = ceil((ppos[0] + 1) / bdimi[0]) - 1
+            bcol = ceil((ppos[1] + 1) / bdimi[1]) - 1
+            return (brow * bdimo[1]) + bcol
 
         # Initialize the cells.
         for r, row in enumerate(arr):
