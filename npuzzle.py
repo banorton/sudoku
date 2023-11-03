@@ -1,7 +1,5 @@
 import numpy as np
 from helpers import p2b
-from math import prod
-import numpy as np
 from collections import defaultdict
 import tkinter as tk
 from math import prod
@@ -9,7 +7,7 @@ import nsolver as ns
 
 
 class Cell:
-    def __init__(self, val=0, pos=None, box=None, parent=None):
+    def __init__(self, val=0, pos=None, box=None):
         if not isinstance(val, int):
             val = int(val)
         self._val = val
@@ -19,7 +17,6 @@ class Cell:
             self.notes = set((val,))
         self.pos = pos
         self.box = box
-        self.parent = parent
 
     @property
     def val(self):
@@ -29,18 +26,12 @@ class Cell:
     def val(self, new_val):
         self._val = new_val
         self.notes = set((new_val,))
-        self.parent.np[self.pos] = new_val
-        self.parent.unsolved -= 1
-        if not ns.is_valid(self.parent):
-            raise Exception()
-        r, c = self.pos
-        self.parent.del_notes(val=new_val, row=r, col=c, box=self.box, save=self.pos)
 
     def __str__(self):
         return f"{self.val}"
 
     def __repr__(self):
-        return f"{self.pos}"
+        return f"Cell@{self.pos}"
 
     def __int__(self):
         return self.val
@@ -59,7 +50,7 @@ class Puzzle:
 
     def __setitem__(self, pos, new_val):
         cell = self.__getitem__(pos)
-        cell.val = int(new_val)
+        self._update_cell(cell, new_val)
 
     def __getitem__(self, pos):
         res = None
@@ -101,7 +92,7 @@ class Puzzle:
         # Initialize the cells.
         for r, row in enumerate(arr):
             for c, val in enumerate(row):
-                cell = Cell(pos=(r, c), box=p2b((r, c)), parent=self)
+                cell = Cell(pos=(r, c), box=p2b((r, c)))
                 self.cells.append(cell)
                 self.row[r].append(cell)
                 self.col[c].append(cell)
@@ -112,6 +103,17 @@ class Puzzle:
             for c, val in enumerate(row):
                 if val != 0:
                     self[r, c] = val
+
+    def _update_cell(self, cell, new_val):
+        new_val = int(new_val)
+        cell.val = new_val
+        self.np[cell.pos] = new_val
+        self.unsolved -= 1
+        valid, reason = ns.is_valid(self)
+        if not valid:
+            raise Exception(reason)
+        r, c = cell.pos
+        self.del_notes(val=new_val, row=r, col=c, box=cell.box, save=cell.pos)
 
     def del_notes(self, val=[], row=[], col=[], box=[], save=[]):
         if isinstance(val, int):
@@ -166,6 +168,7 @@ class Puzzle:
         self.row = p.row
         self.col = p.col
         self.np = p.np
+        self.unsolved = p.unsolved
         self.checked = p.checked
 
     def clear(self):
@@ -174,3 +177,8 @@ class Puzzle:
                 cell.val = 0
                 cell.notes = set(range(1, 10))
         self.checked = defaultdict(lambda: defaultdict(lambda: []))
+
+    def solve(self):
+        solved = ns.std_solve(self)
+        if not solved:
+            ns.nishio(self)
