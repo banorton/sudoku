@@ -12,7 +12,6 @@ class Puzzle_Frontend:
         root.geometry("800x600")
         root.resizable(width=False, height=False)
         style = ttk.Style(root)
-        root.tk.call("source", path.join(path.dirname(__file__), "forest-light.tcl"))
         root.tk.call("source", path.join(path.dirname(__file__), "forest-dark.tcl"))
         style.theme_use("forest-dark")
 
