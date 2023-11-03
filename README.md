@@ -19,10 +19,11 @@ When the regular algorithms can't make any further progress on the puzzle, I hav
 
 
 # Lessons Learned
-- I learned the basics of tkinter to make the GUI.
-- I learned more about how to use git and github for development.
-- I learned about how to make a python package. I learned how to use __init__ files.
-- First and foremost, I learned that often my eyes are too big for my stomach. I can think of an endless amount of features I want to add at the start of a project, but that can often be a hinderance. If your intentions are too gradiose, it can be hard to know where to begin.
+I learned,
+- the basics of tkinter to make the GUI.
+- more about how to use git and github for development.
+- how to make a python package and use __init__ files.
+- arguably most importantly that often my eyes are too big for my stomach. I can think of an endless amount of features I want to add at the start of a project, but that can often be a hinderance. If your intentions are too gradiose, it can be hard to know where to begin.
 
 
 # TODOs (in no particular order)
