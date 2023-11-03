@@ -3,9 +3,13 @@ This Python package can solve Sudoku puzzles input by the user as long as the pu
 
 
 # System Overview:
-This project was written completely in Python using **numpy**, and **tkinter** for the GUI. I am also using an OCR from **pytesseract** to read in puzzles from an image, but this feature has not been fully implemented yet.
+This project was written only in Python using **numpy**, and **tkinter** for the GUI. I am also using an OCR from **pytesseract** to read in puzzles from an image, but this feature has not been fully implemented yet.
 
 The system is currently laid out as follows,
+- **puzzle.py**: Contains the **Cell** object which holds the value and notes for a cell, the **Puzzle_Backend** object which contains all the information for the puzzle and defines how the puzzle interacts with the solver, and the **Puzzle** object which handles the connection between the front and back end of puzzle.
+- **solver.py**: Contains all of the algorithms used to solve the puzzle. I talk more in depth on how I made those algorithms in the [next section](#solving-algorithms).
+- **gui/**: Contains the **gui.py** file with the **Puzzle_Backend** object, and the theme files for the tkinter gui. **Puzzle_Backend** defines how the tkinter gui is setup. Currently the gui has a puzzle frame on the right to display the values of each of the cells and an info frame on the left which contains the buttons for solving and clearing the puzzle.
+- **examples/**: Stores example puzzles of varying difficulties. The difficulties scale from easy to impossible. 
 
 
 # Solving Algorithms
