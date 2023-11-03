@@ -66,12 +66,12 @@ def std_solve(p):
 
 
 def nishio(p, n=2):
-    print("############################## NISHIO ################################")
+    # Check if all of the cells have been solved.
+    if not p.unsolved:
+        return
     for cell in p.cells:
-        # Check if all of the cells have been solved.
         if not p.unsolved:
             return
-
         # If there is a naked double in the puzzle, test each value. Call nishio again if solving stalls.
         solved = False
         if len(cell.notes) == n:
@@ -79,7 +79,7 @@ def nishio(p, n=2):
             puzzle_snapshot = dcopy(p)
             try:
                 print(
-                    "############################# BRANCH 1 ###############################"
+                    "######################## NISHIO - BRANCH 1 ###########################"
                 )
                 p[cell.pos] = vals[0]
                 solved = std_solve(p)
@@ -89,7 +89,7 @@ def nishio(p, n=2):
                     nishio(p)
             except:
                 print(
-                    "############################# BRANCH 2 ###############################"
+                    "######################## NISHIO - BRANCH 2 ##########################"
                 )
                 p.copy(puzzle_snapshot)
                 p[cell.pos] = vals[1]
@@ -101,6 +101,12 @@ def nishio(p, n=2):
 
 
 def find_naked_general(p, n):
+    """
+    For a given number (num), if exactly num amount of cells, in a row or column or box, contain exactly num amount of notes and those notes are equal, eliminate those values from the notes of the other cells in the respective row, column, or box.
+
+    Example:
+    While checking row 3 with num=2, cells at positions (3,3) and (3,7) are found to have only the 2 notes {4,8}; Notes 4 and 8 will be removed from all other cells in row 3. If the cell at position (3,0) had the notes {1,3,4,7,8}, afterwards it would have the notes {1,3,7}.
+    """
     assert n > 0
     if n == 1:
         diffs = ""
@@ -152,6 +158,12 @@ def find_naked_general(p, n):
 
 
 def find_hidden_general(p, n):
+    """
+    For a given number (num), if exactly num amount of cells, in a row or column or box, contain more than num amount of notes but share the same num amount of notes, eliminate all but the shared notes in those cells. Eliminate the shared notes from the notes in other cells in the respective row, column, or box.
+
+    Example:
+    While checking row 3 with num=2, cells only at positions (3,3) and (3,7) are found to have more than 2 notes, {1,3,4,6,8} and {2,4,7,8}, but share notes 4 and 8; Notes 4 and 8 will be removed from all other notes in the cells of row 3. All notes exluding 4 and 8, for the cells at positions (3,3) and (3,7), will be removed.
+    """
     assert n > 0
     if n == 1:
         diffs = ""

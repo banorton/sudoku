@@ -117,7 +117,8 @@ class Puzzle_Backend:
         self.unsolved -= 1
         valid, reason = is_valid(self)
         if not valid:
-            print(self.np)
+            print(f"\nError: " + reason)
+            print(self.np, end="\n\n")
             raise Exception(reason)
         r, c = cell.pos
         self.del_notes(val=new_val, row=r, col=c, box=cell.box, save=cell.pos)
@@ -192,6 +193,15 @@ class Puzzle_Backend:
         self._init(vals)
 
     def solve(self):
+        # If there are fewer than 17 clues, there can not be a unique solution.
+        clue_ct = 0
+        for cell in self.cells:
+            if cell.val != 0:
+                clue_ct += 1
+            if clue_ct >= 17:
+                break
+        if clue_ct < 17:
+            raise Exception("Puzzle does not have a unique solution.")
         solved = std_solve(self)
         if not solved:
             nishio(self)
