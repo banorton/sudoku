@@ -98,7 +98,7 @@ class Puzzle:
                 self.col[c].append(cell)
                 self.box[cell.box].append(cell)
 
-        # Assign all values after initialization to make sure notes are deleted properly.
+        # Assign all values after initialization to make sure notes are discarded properly.
         for r, row in enumerate(arr):
             for c, val in enumerate(row):
                 if val != 0:

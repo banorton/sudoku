@@ -3,37 +3,7 @@ from collections import defaultdict
 from copy import deepcopy as dcopy
 
 
-# def is_valid(p) -> bool:
-#     # Check boxs for duplicates.
-#     for bnum, box in enumerate(p.box):
-#         box = np.array([int(cell) for cell in box])
-#         box = np.delete(box, np.where(box == 0))
-#         if box.size > np.unique(box).size:
-#             return (False, f"box {bnum}")
-
-#     # Check rows for duplicates.
-#     for rnum, row in enumerate(p.row):
-#         row = np.array([int(cell) for cell in row])
-#         row = np.delete(row, np.where(row == 0))
-#         if row.size > np.unique(row).size:
-#             return (False, f"row {rnum}")
-
-#     # Check columns for duplicates.
-#     for cnum, col in enumerate(p.col):
-#         col = np.array([int(cell) for cell in col])
-#         col = np.delete(col, np.where(col == 0))
-#         if col.size > np.unique(col).size:
-#             return (False, f"col {cnum}")
-
-#     for cell in p.cells:
-#         if not list(cell.notes):
-#             return (False, f"cell {cell.pos}")
-
-#     # Return True if the puzzle is valid.
-#     return True, ""
-
-
-def is_valid(p) -> bool:
+def is_valid(p):
     # Count the occurrence of values in every row, column, and box.
     rcounts = [[0 for _ in range(10)] for _ in range(9)]
     ccounts = [[0 for _ in range(10)] for _ in range(9)]
@@ -109,7 +79,7 @@ def nishio(p, n=2):
             puzzle_snapshot = dcopy(p)
             try:
                 print(
-                    "############################## BRANCH ################################"
+                    "############################# BRANCH 1 ###############################"
                 )
                 p[cell.pos] = vals[0]
                 solved = std_solve(p)
@@ -119,10 +89,7 @@ def nishio(p, n=2):
                     nishio(p)
             except:
                 print(
-                    "############################ BRANCH FAIL #############################"
-                )
-                print(
-                    "############################## BRANCH ################################"
+                    "############################# BRANCH 2 ###############################"
                 )
                 p.copy(puzzle_snapshot)
                 p[cell.pos] = vals[1]
