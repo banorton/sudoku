@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from os import path
+from math import floor
 
 
 class Puzzle_Frontend:
@@ -24,50 +25,53 @@ class Puzzle_Frontend:
         # load_image_btn.pack(fill="x", pady=10)
         info.pack(side="left", padx=10)
 
-        # puzzle = ttk.Frame(root)
-        # puzzle.rowconfigure(tuple(range(3)), weight=1)
-        # puzzle.columnconfigure(tuple(range(3)), weight=1)
-        # boxes, entries = self._gen_boxes_and_entries(puzzle)
-        # self.boxes = boxes
-        # self.entries = entries
-        # puzzle.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+        puzzle = ttk.Frame(root)
+        puzzle.rowconfigure(tuple(range(3)), weight=1)
+        puzzle.columnconfigure(tuple(range(3)), weight=1)
+        boxes, cells = self._gen_boxes_and_cells(puzzle)
+        self.boxes = boxes
+        self.cells = cells
+        puzzle.pack(side="right", fill="both", expand=True, padx=5, pady=5)
 
-    # def _gen_boxes_and_entries(self, parent_frame):
-    #     boxes = []
-    #     for r in range(3):
-    #         row = []
-    #         for c in range(3):
-    #             pframe = tk.Frame(
-    #                 parent_frame, highlightbackground="white", highlightthickness=0.5
-    #             )
-    #             pframe.rowconfigure(tuple(range(3)), weight=1)
-    #             pframe.columnconfigure(tuple(range(3)), weight=1)
-    #             pframe.grid(row=r, column=c, sticky="news", padx=1, pady=1)
-    #             row.append(pframe)
-    #         boxes.append(row)
-    #     entries = [[0 for _ in range(9)] for _ in range(9)]
-    #     for row_num, row in enumerate(boxes):
-    #         for col_num, box in enumerate(row):
-    #             for r in range(3):
-    #                 for c in range(3):
-    #                     new_entry = ttk.Entry(
-    #                         box, font="Helvetica 22 bold", justify="center"
-    #                     )
-    #                     new_entry.grid(row=r, column=c, sticky="news")
-    #                     pos = box_pos_to_puzzle_pos((3, 3), (row_num, col_num), (r, c))
-    #                     entries[pos[0]][pos[1]] = new_entry
-    #     return boxes, entries
+    def _gen_boxes_and_cells(self, parent_frame):
+        def bpos2cpos(bnum, bpos):
+            ppos = (floor(bnum / 3), bnum - (floor(bnum / 3) * 3))
+            rnum = (ppos[0] * 3) + bpos[0]
+            cnum = (ppos[1] * 3) + bpos[1]
+            return (rnum, cnum)
 
-    # def solve(self):
-    #     self.parent.solve()
+        boxes = []
+        for rnum in range(3):
+            for cnum in range(3):
+                pframe = tk.Frame(
+                    parent_frame, highlightbackground="white", highlightthickness=0.5
+                )
+                pframe.rowconfigure(tuple(range(3)), weight=1)
+                pframe.columnconfigure(tuple(range(3)), weight=1)
+                pframe.grid(row=rnum, column=cnum, sticky="news", padx=1, pady=1)
+                boxes.append(pframe)
+        cells = [[0 for _ in range(9)] for _ in range(9)]
+        for bnum, box in enumerate(boxes):
+            for rnum in range(3):
+                for cnum in range(3):
+                    new_entry = ttk.Entry(
+                        box, font="Helvetica 22 bold", justify="center"
+                    )
+                    new_entry.grid(row=rnum, column=cnum, sticky="news")
+                    pos = bpos2cpos(bnum, (rnum, cnum))
+                    cells[pos[0]][pos[1]] = new_entry
+        return boxes, cells
 
-    # def clear(self):
-    #     self.parent.clear()
+    def solve(self):
+        self.parent.solve()
 
-    # def update(self, pos, val):
-    #     row, col = pos
-    #     self.gui.entries[row][col].delete(0, tk.END)
-    #     self.gui.entries[row][col].insert(0, str(val))
+    def clear(self):
+        self.parent.clear()
+
+    def update(self, pos, val):
+        row, col = pos
+        self.cells[row][col].delete(0, tk.END)
+        self.cells[row][col].insert(0, str(val))
 
     # def load_image(self):
     #     self.parent.load_image()

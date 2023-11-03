@@ -110,11 +110,14 @@ class Puzzle_Backend:
 
     def _update_cell(self, cell, new_val):
         new_val = int(new_val)
+        if new_val == 0:
+            raise Exception("Can not assign a value of 0.")
         cell.val = new_val
         self.np[cell.pos] = new_val
         self.unsolved -= 1
         valid, reason = is_valid(self)
         if not valid:
+            print(self.np)
             raise Exception(reason)
         r, c = cell.pos
         self.del_notes(val=new_val, row=r, col=c, box=cell.box, save=cell.pos)
@@ -181,6 +184,12 @@ class Puzzle_Backend:
                 cell.val = 0
                 cell.notes = set(range(1, 10))
         self.checked = defaultdict(lambda: defaultdict(lambda: []))
+        self.unsolved = 81
+        self.np = np.zeros((9, 9), int)
+
+    def load(self, vals):
+        self.clear()
+        self._init(vals)
 
     def solve(self):
         solved = std_solve(self)
@@ -192,45 +201,46 @@ class Puzzle:
     def __init__(self, vals=None, gui=True):
         self.puz = Puzzle_Backend(vals)
         self.gui = Puzzle_Frontend(parent=self) if gui else None
-        self.match_GUI_with_Puzzle()
+        self.puz2gui()
         self.gui.root.mainloop()
 
     def load(self, vals):
         self.puz.load(vals)
 
-    def updateGUI(self, pos, val):
+    def update_gui(self, pos, val):
         self.gui.update(pos, val)
 
-    def updatePuzzle(self, pos, val):
+    def update_puz(self, pos, val):
         return
 
-    def match_GUI_with_Puzzle(self):
+    def puz2gui(self):
         for row in self.puz:
             for cell in row:
-                if cell.val:
-                    self.updateGUI(cell.pos, cell.val)
+                if cell.val != 0:
+                    self.update_gui(cell.pos, cell.val)
                 else:
-                    self.updateGUI(cell.pos, "")
+                    self.update_gui(cell.pos, "")
 
-    def match_Puzzle_with_GUI(self):
+    def gui2puz(self):
         self.puz.clear()
-        for r, row in enumerate(self.gui.entries):
-            for c, entry in enumerate(row):
-                val = entry.get()
+        for rnum, row in enumerate(self.gui.cells):
+            for cnum, gui_cell in enumerate(row):
+                val = gui_cell.get()
                 val = int(val) if val else 0
-                self.puz.update_cell((r, c), val)
+                if val != 0:
+                    self.puz[rnum, cnum] = val
 
     def solve(self):
-        self.match_Puzzle_with_GUI()
+        self.gui2puz()
         self.puz.solve()
-        self.match_GUI_with_Puzzle()
+        self.puz2gui()
 
     def clear(self):
         self.puz.clear()
-        self.match_GUI_with_Puzzle()
+        self.puz2gui()
 
     # def load_image(self):
     #     nums = proc()
     #     self.puz.clear()
     #     self.puz.load(nums, force=True)
-    #     self.match_GUI_with_Puzzle()
+    #     self.puz2gui()
