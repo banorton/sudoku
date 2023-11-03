@@ -189,16 +189,14 @@ class Puzzle_Backend:
 
 
 class Puzzle:
-    def __init__(self, vals=None):
-        self.gui = Puzzle_Frontend(parent=self)
-        self.puzzle = Puzzle()
-        if vals:
-            self.puzzle.load(vals)
-            self.match_GUI_with_Puzzle()
+    def __init__(self, vals=None, gui=True):
+        self.puz = Puzzle_Backend(vals)
+        self.gui = Puzzle_Frontend(parent=self) if gui else None
+        self.match_GUI_with_Puzzle()
         self.gui.root.mainloop()
 
     def load(self, vals):
-        self.puzzle.load(vals)
+        self.puz.load(vals)
 
     def updateGUI(self, pos, val):
         self.gui.update(pos, val)
@@ -207,7 +205,7 @@ class Puzzle:
         return
 
     def match_GUI_with_Puzzle(self):
-        for row in self.puzzle:
+        for row in self.puz:
             for cell in row:
                 if cell.val:
                     self.updateGUI(cell.pos, cell.val)
@@ -215,24 +213,24 @@ class Puzzle:
                     self.updateGUI(cell.pos, "")
 
     def match_Puzzle_with_GUI(self):
-        self.puzzle.clear()
+        self.puz.clear()
         for r, row in enumerate(self.gui.entries):
             for c, entry in enumerate(row):
                 val = entry.get()
                 val = int(val) if val else 0
-                self.puzzle.update_cell((r, c), val)
+                self.puz.update_cell((r, c), val)
 
     def solve(self):
         self.match_Puzzle_with_GUI()
-        self.puzzle.solve()
+        self.puz.solve()
         self.match_GUI_with_Puzzle()
 
     def clear(self):
-        self.puzzle.clear()
+        self.puz.clear()
         self.match_GUI_with_Puzzle()
 
     # def load_image(self):
     #     nums = proc()
-    #     self.puzzle.clear()
-    #     self.puzzle.load(nums, force=True)
+    #     self.puz.clear()
+    #     self.puz.load(nums, force=True)
     #     self.match_GUI_with_Puzzle()
