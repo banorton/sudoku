@@ -1,7 +1,3 @@
-from .puzzle import *
-from .box import *
-from .cell import *
-from .helpers import *
+from .puzzle import Puzzle, Puzzle_Backend
 from .solver import *
 from .examples import *
-from .imgproc import *

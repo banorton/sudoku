@@ -3,39 +3,13 @@ This Python package can solve Sudoku puzzles input by the user as long as the pu
 
 
 # System Overview:
-This project was written completely in Python using **numpy**, and **tkinter** for the GUI. I am also using an OCR from **pytesseract** to read in puzzles from an image, but this feature has not been fully implemented yet.
+This project was written only in Python using **numpy**, and **tkinter** for the GUI. I am also using an OCR from **pytesseract** to read in puzzles from an image, but this feature has not been fully implemented yet.
 
-I originally wrote this project with a very bare-bones framework just to get it working. However, I realized I wanted something more robust so that I could add features in the future that I was interested in like the ability to create puzzles, walk the user through solving a puzzle, etc. I also wanted a project that would help me start thinking about system design and how to plan for the future. I'm still constantly trying to rethink the design to make it make more sense and cut out unnecessary code. The system is currently laid out as follows.
-
-```
-PuzzleGUI
-├── GUI
-└── Puzzle
-    ├── Cell Array (9x9)
-    │   └── Cell
-    │       ├── Val
-    │       └── Note
-    └── Box Array
-        └── Boxes (3x3)
-            └── Box(Cell Array)
-Solver
-Helpers
-Generic
-```
-
-At the top is a **PuzzleGUI** object. This object contains all of the information and objects used for a particular instance of a puzzle. It also acts as the bridge between the backend of the puzzle/puzzle-solver and the front end that displays the puzzle. Each PuzzleGUI has two main objects, a **Gui** object and a **Puzzle** object.
-
-The **Puzzle** object has two main objects, a **Box Array** and a **Cell Array**. These ojects contain the same information but are grouped differently to make certain processes quicker/easier.
-
-The **Cell Array** contains all of the Cells in the puzzle (81 cells). Each **Cell** contains the fundamental elements of the puzzle: the current value of the cell **cell.val** (0 if undetermined) and the notes for the cell **cell.notes** (i.e. the possible values for the cell).
-
-There are 9 boxes in a Sudoku puzzle, each of which contains 9 cells. The **Box Array** object contains 9 **Box** objects in an array with dimensions (3x3). A Box is a Cell Array but with some small changes.
-
-**Solver**: This file contains all the algorithms used to solve a puzzle. It made sense to put them into their own file since it is the bulk of the code and I plan to add more algorithms and methods to solve the puzzle. I intend to make a solver that uses machine learning to solve the puzzles.
-
-**Helpers**: This file contains a miscellany of helpful functions that I use in multiple places.
-
-**Generic**: This file currently contains only a single class, **Array**. This file will likely be expanded as features are added.
+The system is currently laid out as follows,
+- **puzzle.py**: Contains the **Cell** object which holds the value and notes for a cell, the **Puzzle_Backend** object which contains all the information for the puzzle and defines how the puzzle interacts with the solver, and the **Puzzle** object which handles the connection between the front and back end of puzzle.
+- **solver.py**: Contains all of the algorithms used to solve the puzzle. I talk more in depth on how I made those algorithms in the [next section](#solving-algorithms).
+- **gui/**: Contains the **gui.py** file with the **Puzzle_Backend** object, and the theme files for the tkinter gui. **Puzzle_Backend** defines how the tkinter gui is setup. Currently the gui has a puzzle frame on the right to display the values of each of the cells and an info frame on the left which contains the buttons for solving and clearing the puzzle.
+- **examples/**: Stores example puzzles of varying difficulties. The difficulties scale from easy to impossible. 
 
 
 # Solving Algorithms
@@ -48,7 +22,7 @@ When the regular algorithms can't make any further progress on the puzzle, I hav
 - I learned the basics of tkinter to make the GUI.
 - I learned more about how to use git and github for development.
 - I learned about how to make a python package. I learned how to use __init__ files.
-- First and foremost, I learned that often my eyes are too big for my stomach. I can think of an endless amount of features I want to add at the start of a project, but that can often be a hinderance. If your intentions are too gradiose, it can be hard to know where to begin. However, if you don't think far enough into the future, a lot of rethinking and rewriting has to be done which takes a lot of time. A balance seems to be required.
+- First and foremost, I learned that often my eyes are too big for my stomach. I can think of an endless amount of features I want to add at the start of a project, but that can often be a hinderance. If your intentions are too gradiose, it can be hard to know where to begin.
 
 
 # TODOs (in no particular order)

@@ -1,125 +1,164 @@
 import numpy as np
-from .solver import std_solve, is_valid, nishio
-from .helpers import puzzle_pos_to_box_pos
-from .box import Box_Array
-from .gui.gui import gui
 from collections import defaultdict
-import tkinter as tk
-from math import prod
-from .imgproc.imgproc import proc
+from math import ceil
+from sudoku.gui.gui import Puzzle_Frontend
+from sudoku.solver import is_valid, std_solve, nishio
 
 
-class Puzzle:
-    def __init__(self, vals=None):
-        self.puzzle_dim = (3, 3)
-        self.box_dim = (3, 3)
-        self.cell_dim = (
-            self.box_dim[0] * self.puzzle_dim[0],
-            self.box_dim[1] * self.puzzle_dim[1],
-        )
-        self.cells_unsolved = self.cell_dim[0] * self.cell_dim[1]
-        self.boxes = Box_Array(self.puzzle_dim, self.box_dim)
-        self.cells = self.boxes.to_cell_arr()
-        self.checked = defaultdict(lambda: defaultdict(lambda: []))
-        if not (vals is None):
-            self._assign_vals(vals)
+class Cell:
+    def __init__(self, val=0, pos=None, box=None):
+        if not isinstance(val, int):
+            val = int(val)
+        self._val = val
+        if val == 0:
+            self.notes = set(range(1, 10))
+        else:
+            self.notes = set((val,))
+        self.pos = pos
+        self.box = box
 
-    def __getitem__(self, pos):
-        return self.cells.__getitem__(pos)
+    @property
+    def val(self):
+        return self._val
 
-    def __iter__(self):
-        yield from self.cells
+    @val.setter
+    def val(self, new_val):
+        self._val = new_val
+        self.notes = set((new_val,))
 
     def __str__(self):
-        puzzle_str = ""
-        for row_num in range(self.cell_dim[0]):
-            row = self.cells.get_row(row_num).to_vals()
+        return f"{self.val}"
+
+    def __repr__(self):
+        return f"Cell@{self.pos}"
+
+    def __int__(self):
+        return self.val
+
+
+class Puzzle_Backend:
+    def __init__(self, vals=None):
+        self.unsolved = 81
+        self.cells = []
+        self.box = [[] for _ in range(9)]
+        self.row = [[] for _ in range(9)]
+        self.col = [[] for _ in range(9)]
+        self.np = None
+        self._init(vals)
+        self.checked = defaultdict(lambda: defaultdict(lambda: []))
+
+    def __setitem__(self, pos, new_val):
+        cell = self.__getitem__(pos)
+        self._update_cell(cell, new_val)
+
+    def __getitem__(self, pos):
+        res = None
+        if isinstance(pos, int):
+            res = self.row[pos]
+        elif pos[0] == slice(None, None, None) and isinstance(pos[1], int):
+            res = self.col[pos[1]]
+        elif isinstance(pos[0], int) and pos[1] == slice(None, None, None):
+            res = self.row[pos[0]]
+        elif isinstance(pos, tuple):
+            res = self.row[pos[0]][pos[1]]
+        return res
+
+    def __iter__(self):
+        yield from self.row
+
+    def __str__(self):
+        pstr = ""
+        for r, row in enumerate(self.row):
             # Print horizontal seperators between boxes.
-            if (row_num % self.box_dim[0]) == 0:
-                puzzle_str += "-------------------------------------------------------------------------------------------------\n"
-                puzzle_str += "|\t\t\t\t|\t\t\t\t|\t\t\t\t|\n"
-
+            if (r % 3) == 0:
+                pstr += "-------------------------------------------------------------------------------------------------\n"
+                pstr += "|\t\t\t\t|\t\t\t\t|\t\t\t\t|\n"
             # Print row with vertical seperators between boxes.
-            for i in range(self.box_dim[1]):
-                puzzle_str += "|\t"
-                puzzle_str += str(row[i * self.box_dim[1]]) + "\t"
-                puzzle_str += str(row[i * self.box_dim[1] + 1]) + "\t"
-                puzzle_str += str(row[i * self.box_dim[1] + 2]) + "\t"
+            for i in range(3):
+                pstr += f"|\t{row[i * 3]}\t{row[i * 3 + 1]}\t{row[i * 3 + 2]}\t"
+            pstr += "|\n"
+            pstr += "|\t\t\t\t|\t\t\t\t|\t\t\t\t|\n"
+        pstr += "-------------------------------------------------------------------------------------------------\n"
+        return pstr
 
-            puzzle_str += "|\n"
-            puzzle_str += "|\t\t\t\t|\t\t\t\t|\t\t\t\t|\n"
+    def _init(self, vals):
+        if vals:
+            arr = np.reshape(np.array(vals), (9, 9))
+        else:
+            arr = np.zeros((9, 9), int)
+        self.np = arr
 
-        puzzle_str += "-------------------------------------------------------------------------------------------------\n"
-        return puzzle_str
+        def p2b(ppos, bdimo=(3, 3), bdimi=(3, 3)):
+            brow = ceil((ppos[0] + 1) / bdimi[0]) - 1
+            bcol = ceil((ppos[1] + 1) / bdimi[1]) - 1
+            return (brow * bdimo[1]) + bcol
 
-    def _assign_vals(self, vals, force=False):
-        if not isinstance(vals, np.ndarray):
-            vals = np.array(vals)
-        vals = np.reshape(vals, self.cell_dim).tolist()
-        for m in range(self.cell_dim[0]):
-            for n in range(self.cell_dim[1]):
-                self.update_cell((m, n), vals[m][n], force)
+        # Initialize the cells.
+        for r, row in enumerate(arr):
+            for c, val in enumerate(row):
+                cell = Cell(pos=(r, c), box=p2b((r, c)))
+                self.cells.append(cell)
+                self.row[r].append(cell)
+                self.col[c].append(cell)
+                self.box[cell.box].append(cell)
 
-    def load(self, vals, force=False):
-        self._assign_vals(vals, force)
+        # Assign all values after initialization to make sure notes are discarded properly.
+        for r, row in enumerate(arr):
+            for c, val in enumerate(row):
+                if val != 0:
+                    self[r, c] = val
 
-    def get_cell(self, pos: tuple):
-        row, col = pos
-        return self.cells[row][col]
+    def _update_cell(self, cell, new_val):
+        new_val = int(new_val)
+        if new_val == 0:
+            raise Exception("Can not assign a value of 0.")
+        cell.val = new_val
+        self.np[cell.pos] = new_val
+        self.unsolved -= 1
+        valid, reason = is_valid(self)
+        if not valid:
+            print(f"\nError: " + reason)
+            print(self.np, end="\n\n")
+            raise Exception(reason)
+        r, c = cell.pos
+        self.del_notes(val=new_val, row=r, col=c, box=cell.box, save=cell.pos)
 
-    def get_row(self, row_num: int):
-        return self.cells.get_row(row_num)
-
-    def get_col(self, col_num: int):
-        return self.cells.get_col(col_num)
-
-    def get_box(self, pos: int):
-        row, col = pos
-        return self.boxes[row][col]
-
-    def update_cell(self, pos: tuple, val: int, force=False, propagate=True):
-        if val == 0:
-            return
-        self.cells_unsolved -= 1
-        box_pos, _ = puzzle_pos_to_box_pos(self, pos)
-        r, c = pos
-        self[r, c].val = val
-        self[r, c].notes = {val}
-
-        if not force:
-            if not is_valid(self):
-                raise Exception("Not valid.")
-        elif force:
-            if not is_valid(self):
-                val = 0
-                self[r, c].val = val
-                self[r, c].notes = {val}
-
-        if propagate:
-            self.del_notes(vals=[val], rows=[r], cols=[c], boxes=[box_pos], save=[pos])
-
-    def del_notes(self, vals=[], rows=[], cols=[], boxes=[], positions=[], save=[]):
-        for val in vals:
-            for row_num in rows:
-                self.del_notes_row(val, row_num)
-            for col_num in cols:
-                self.del_notes_col(val, col_num)
-            for box_pos in boxes:
-                self.del_notes_box(val, box_pos)
+    def del_notes(self, val=[], row=[], col=[], box=[], save=[]):
+        if isinstance(val, int):
+            val = [val]
+        if isinstance(row, int):
+            row = [row]
+        if isinstance(col, int):
+            col = [col]
+        if isinstance(box, int):
+            box = [box]
+        if isinstance(save, tuple):
+            if isinstance(save[0], int):
+                save = [save]
+            elif isinstance(save[0], tuple):
+                save = list(save)
+        for val in val:
+            for rnum in row:
+                self.del_notes_row(val, rnum)
+            for cnum in col:
+                self.del_notes_col(val, cnum)
+            for bnum in box:
+                self.del_notes_box(val, bnum)
             if save:
                 for pos in save:
-                    self.cells[pos[0]][pos[1]].notes.add(val)
+                    self[pos[0]][pos[1]].notes.add(val)
 
-    def del_notes_row(self, val, row_num):
-        self.cells.get_row(row_num).del_notes(val)
+    def del_notes_row(self, val, rnum):
+        for cell in self.row[rnum]:
+            cell.notes.discard(val)
 
-    def del_notes_col(self, val, col_num):
-        self.cells.get_col(col_num).del_notes(val)
+    def del_notes_col(self, val, cnum):
+        for cell in self.col[cnum]:
+            cell.notes.discard(val)
 
-    def del_notes_box(self, val, box_pos):
-        m, n = box_pos
-        box = self.boxes[m][n]
-        box.del_notes(val)
+    def del_notes_box(self, val, bnum):
+        for cell in self.box[bnum]:
+            cell.notes.discard(val)
 
     def del_notes_cell(self, posns=[], vals=[], save_vals=[]):
         for pos in posns:
@@ -131,75 +170,87 @@ class Puzzle:
             for val in save_vals:
                 self[pos].notes.add(val)
 
-    def solve(self, prnt=False):
-        solved = std_solve(self, prnt)
-        if not solved:
-            nishio(self, prnt)
-        if prnt:
-            print("SOLVED")
-
     def copy(self, p):
-        self.cells_unsolved = p.cells_unsolved
-        self.boxes = p.boxes
         self.cells = p.cells
+        self.box = p.box
+        self.row = p.row
+        self.col = p.col
+        self.np = p.np
+        self.unsolved = p.unsolved
         self.checked = p.checked
 
     def clear(self):
-        for row in self:
+        for row in self.row:
             for cell in row:
                 cell.val = 0
                 cell.notes = set(range(1, 10))
-        self.cells_unsolved = prod(self.cell_dim)
         self.checked = defaultdict(lambda: defaultdict(lambda: []))
+        self.unsolved = 81
+        self.np = np.zeros((9, 9), int)
+
+    def load(self, vals):
+        self.clear()
+        self._init(vals)
+
+    def solve(self):
+        # If there are fewer than 17 clues, there can not be a unique solution.
+        clue_ct = 0
+        for cell in self.cells:
+            if cell.val != 0:
+                clue_ct += 1
+            if clue_ct >= 17:
+                break
+        if clue_ct < 17:
+            raise Exception("Puzzle does not have a unique solution.")
+        solved = std_solve(self)
+        if not solved:
+            nishio(self)
 
 
-class PuzzleGUI:
-    def __init__(self, vals=None):
-        self.gui = gui(parent=self)
-        self.puzzle = Puzzle()
-        if vals:
-            self.puzzle.load(vals)
-            self.match_GUI_with_Puzzle()
+class Puzzle:
+    def __init__(self, vals=None, gui=True):
+        self.puz = Puzzle_Backend(vals)
+        self.gui = Puzzle_Frontend(parent=self) if gui else None
+        self.puz2gui()
         self.gui.root.mainloop()
 
     def load(self, vals):
-        self.puzzle.load(vals)
+        self.puz.load(vals)
 
-    def updateGUI(self, pos, val):
-        row, col = pos
-        self.gui.entries[row][col].delete(0, tk.END)
-        self.gui.entries[row][col].insert(0, str(val))
+    def update_gui(self, pos, val):
+        self.gui.update(pos, val)
 
-    def updatePuzzle(self, pos, val):
+    def update_puz(self, pos, val):
         return
 
-    def match_GUI_with_Puzzle(self):
-        for row in self.puzzle:
+    def puz2gui(self):
+        for row in self.puz:
             for cell in row:
-                if cell.val:
-                    self.updateGUI(cell.pos, cell.val)
+                if cell.val != 0:
+                    self.update_gui(cell.pos, cell.val)
                 else:
-                    self.updateGUI(cell.pos, "")
+                    self.update_gui(cell.pos, "")
 
-    def match_Puzzle_with_GUI(self):
-        self.puzzle.clear()
-        for r, row in enumerate(self.gui.entries):
-            for c, entry in enumerate(row):
-                val = entry.get()
+    def gui2puz(self):
+        self.puz.clear()
+        for rnum, row in enumerate(self.gui.cells):
+            for cnum, gui_cell in enumerate(row):
+                val = gui_cell.get()
                 val = int(val) if val else 0
-                self.puzzle.update_cell((r, c), val)
+                if val != 0:
+                    self.puz[rnum, cnum] = val
 
     def solve(self):
-        self.match_Puzzle_with_GUI()
-        self.puzzle.solve()
-        self.match_GUI_with_Puzzle()
+        self.gui2puz()
+        self.puz.solve()
+        self.puz2gui()
 
     def clear(self):
-        self.puzzle.clear()
-        self.match_GUI_with_Puzzle()
+        self.puz.clear()
+        self.puz2gui()
 
-    def load_image(self):
-        nums = proc()
-        self.puzzle.clear()
-        self.puzzle.load(nums, force=True)
-        self.match_GUI_with_Puzzle()
+    # def load_image(self):
+    #     nums = proc()
+    #     self.puz.clear()
+    #     self.puz.load(nums, force=True)
+    #     self.puz2gui()
