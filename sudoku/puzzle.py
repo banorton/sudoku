@@ -232,6 +232,15 @@ class Puzzle_Backend:
         self.del_notes(vals=new_val, rows=r, cols=c, boxs=cell.box, save=cell.pos)
 
     def del_notes(self, vals=[], rows=[], cols=[], boxs=[], save=[]):
+        """Deletes values from the notes of specified rows, columns, and boxes.
+
+        Args:
+            vals (list, int): The values to be removed from notes. Defaults to [].
+            rows (list, int): The row numbers that should have the values removed. Defaults to [].
+            cols (list, int): The column numbers that should have the values removed. Defaults to [].
+            boxs (list, int): The box numbers that should have the values removed. Defaults to [].
+            save (list, int): Positions of cells that should be saved from having vals removed from their notes. Defaults to [].
+        """
         if isinstance(vals, int):
             vals = [vals]
         if isinstance(rows, int):
@@ -257,18 +266,43 @@ class Puzzle_Backend:
                     self[pos[0]][pos[1]].notes.add(val)
 
     def del_notes_row(self, val, rnum):
+        """Removes the specified value from all of the notes in a specified row.
+
+        Args:
+            val (int): The value to remove from the row notes.
+            rnum (int): The row to remove the value from.
+        """
         for cell in self.rows[rnum]:
             cell.notes.discard(val)
 
     def del_notes_col(self, val, cnum):
+        """Removes the specified value from all of the notes in a specified column.
+
+        Args:
+            val (int): The value to remove from the column notes.
+            cnum (int): The column to remove the value from.
+        """
         for cell in self.cols[cnum]:
             cell.notes.discard(val)
 
     def del_notes_box(self, val, bnum):
+        """Removes the specified value from all of the notes in a specified box.
+
+        Args:
+            val (int): The value to remove from the box notes.
+            bnum (int): The box to remove the value from.
+        """
         for cell in self.boxs[bnum]:
             cell.notes.discard(val)
 
-    def del_notes_cell(self, posns=[], vals=[], save_vals=[]):
+    def del_notes_cell(self, vals=[], posns=[], save_vals=[]):
+        """Deletes values from specified cells. If no values are specified, all notes are deleted.
+
+        Args:
+            vals (list): The values to be removed from the cells. Defaults to [].
+            posns (list): The positions of the cells to have the values removed. Defaults to [].
+            save_vals (list): Values that should remain after deleting the specified values, vals. Defaults to [].
+        """
         for pos in posns:
             if not vals:
                 self[pos].notes = set()
@@ -279,15 +313,21 @@ class Puzzle_Backend:
                 self[pos].notes.add(val)
 
     def copy(self, p):
+        """Copies all of the attributes from a puzzle to self.
+
+        Args:
+            p (Puzzle_Backend): The puzzle to copy attributes from.
+        """
+        self.unsolved = p.unsolved
         self.cells = p.cells
-        self.boxs = p.boxs
         self.rows = p.rows
         self.cols = p.cols
+        self.boxs = p.boxs
         self.np = p.np
-        self.unsolved = p.unsolved
         self.checked = p.checked
 
     def clear(self):
+        """Clears the puzzle of all values and resets all notes."""
         for row in self.rows:
             for cell in row:
                 cell.val = 0
@@ -297,10 +337,21 @@ class Puzzle_Backend:
         self.np = np.zeros((9, 9), int)
 
     def load(self, vals):
+        """Loads values into the puzzle from a list.
+
+        Args:
+            vals (list[int]): The values for each cell in the puzzle.
+        """
         self.clear()
         self._init(vals)
 
     def solve(self):
+        """The method that interacts with the solver to solve the puzzle. Attempts to use the standard suite of solving algorithms first and then uses the Nishio method as a last resort if solving comes to a halt.
+
+        Raises:
+            Exception: Thrown if there are less than 17 clues as this guarantees there is not a unique solution.
+        """
+
         # If there are fewer than 17 clues, there can not be a unique solution.
         clue_ct = 0
         for cell in self.cells:
@@ -316,6 +367,29 @@ class Puzzle_Backend:
 
 
 class Puzzle:
+    """
+    A class to hold the information for each cell in a Sudoku puzzle.
+
+    ...
+
+    Attributes
+    ----------
+    unsolved : int
+        number of cells unsolved in the puzzle.
+    cells : list[Cell]
+        list of all the cells in the puzzle
+    rows : list[list[Cell]]
+        list of all the rows of cells in the puzzle
+    cols : list[list[Cell]]
+        list of all the columns of cells in the puzzle
+    boxs : list[list[Cell]]
+        list of all the boxes of cells in the puzzle
+    np : numpy.ndarray
+        a 2D numpy array with the values of the cells in the puzzle
+    checked : defaultdict(lambda: defaultdict(lambda: []))
+        a dictionary containing all of the previously checked clues to prevent double checking
+    """
+
     def __init__(self, vals=None, gui=True):
         self.puz = Puzzle_Backend(vals)
         self.gui = Puzzle_Frontend(parent=self) if gui else None
