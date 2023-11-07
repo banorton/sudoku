@@ -6,7 +6,33 @@ from sudoku.solver import is_valid, std_solve, nishio
 
 
 class Cell:
+    """
+    A class to hold the information for each cell in a Sudoku puzzle.
+
+    ...
+
+    Attributes
+    ----------
+    val : int
+        the value of the cell if the cell is solved (0 if unsolved)
+    notes : Set[int]
+        the possible values for the cell
+    pos : str
+        the row and column in the puzzle the cell is located at
+    box : int
+        the number for the box in which the cell is located (0-8)
+    """
+
     def __init__(self, val=0, pos=None, box=None):
+        """Constructs a cell which contains the fundamental elements of the sudoku puzzle such as the value and notes.
+
+        Args:
+            val (int): The value of the cell if the cell is solved (0 if unsolved). Defaults to 0.
+            notes (Set[int]): The possible values for the cell.
+            pos (tuple): The row and column in the puzzle the cell is located at. Defaults to None.
+            box (int): The number for the box in which the cell is located (0-8). Defaults to None.
+        """
+
         if not isinstance(val, int):
             val = int(val)
         self._val = val
@@ -27,25 +53,68 @@ class Cell:
         self.notes = set((new_val,))
 
     def __str__(self):
+        """Returns the value of the cell as a string.
+
+        Returns:
+            str: The value of the cell.
+        """
         return f"{self.val}"
 
     def __repr__(self):
+        """Returns a string indicating this is a Cell object and appends the cell position.
+
+        Returns:
+            str: The cell position.
+        """
         return f"Cell@{self.pos}"
 
     def __int__(self):
+        """Returns the cell values as an int.
+
+        Returns:
+            int: The cell value as an int.
+        """
         return self.val
 
 
 class Puzzle_Backend:
+    """
+    A class to hold the information for each cell in a Sudoku puzzle.
+
+    ...
+
+    Attributes
+    ----------
+    unsolved : int
+        the value of the cell if the cell is solved (0 if unsolved)
+    cells : list[Cell]
+        the possible values for the cell
+    row : int
+        the number for the box in which the cell is located (0-8)
+    col : str
+        the row and column in the puzzle the cell is located at
+    box : int
+        the number for the box in which the cell is located (0-8)
+    np : int
+        the number for the box in which the cell is located (0-8)
+    checked : int
+        the number for the box in which the cell is located (0-8)
+    """
+
     def __init__(self, vals=None):
+        """Contructs the backend of the puzzle which contains all the puzzle information and interacts with the solver.
+
+        Args:
+            vals (list[int]): The values to initialize each cell of the puzzle with. Defaults to None.
+        """
         self.unsolved = 81
         self.cells = []
-        self.box = [[] for _ in range(9)]
         self.row = [[] for _ in range(9)]
         self.col = [[] for _ in range(9)]
+        self.box = [[] for _ in range(9)]
         self.np = None
-        self._init(vals)
         self.checked = defaultdict(lambda: defaultdict(lambda: []))
+        self._init(vals)
 
     def __setitem__(self, pos, new_val):
         cell = self.__getitem__(pos)
