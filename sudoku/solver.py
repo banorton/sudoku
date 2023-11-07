@@ -119,7 +119,7 @@ def find_naked_general(p, n):
 
     diffs = ""
     # Row
-    for rnum, row in enumerate(p.row):
+    for rnum, row in enumerate(p.rows):
         checks = defaultdict(lambda: [])
         for cell in row:
             notes = tuple(sorted(cell.notes))
@@ -131,7 +131,7 @@ def find_naked_general(p, n):
                     p.del_notes(val=notes, row=rnum, save=posns)
                     diffs += f"del notes: row {rnum}, vals {notes}, save {posns}\n"
     # Col
-    for cnum, col in enumerate(p.col):
+    for cnum, col in enumerate(p.cols):
         checks = defaultdict(lambda: [])
         for cell in col:
             notes = tuple(sorted(cell.notes))
@@ -143,7 +143,7 @@ def find_naked_general(p, n):
                     p.del_notes(val=notes, col=cnum, save=posns)
                     diffs += f"del notes: col {cnum}, vals {notes}, save {posns}\n"
     # Box
-    for bnum, box in enumerate(p.box):
+    for bnum, box in enumerate(p.boxs):
         checks = defaultdict(lambda: [])
         for cell in box:
             notes = tuple(sorted(cell.notes))
@@ -171,9 +171,9 @@ def find_hidden_general(p, n):
             if cell.val == 0:
                 rnotes, cnotes, bnotes = [], [], []
                 (rnum, cnum), bnum = cell.pos, cell.box
-                [rnotes.extend(list(rcell.notes)) for rcell in p.row[rnum]]
-                [cnotes.extend(list(ccell.notes)) for ccell in p.col[cnum]]
-                [bnotes.extend(list(bcell.notes)) for bcell in p.box[bnum]]
+                [rnotes.extend(list(rcell.notes)) for rcell in p.rows[rnum]]
+                [cnotes.extend(list(ccell.notes)) for ccell in p.cols[cnum]]
+                [bnotes.extend(list(bcell.notes)) for bcell in p.boxs[bnum]]
                 for val in cell.notes:
                     if bnotes.count(val) == 1:
                         p[cell.pos] = val
@@ -244,7 +244,7 @@ def find_hidden_general(p, n):
 
 def find_inline(p):
     diffs = ""
-    for box in p.box:
+    for box in p.boxs:
         counts = defaultdict(lambda: [])
         for cell in box:
             notes = tuple(sorted(cell.notes))

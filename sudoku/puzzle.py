@@ -109,9 +109,9 @@ class Puzzle_Backend:
         """
         self.unsolved = 81
         self.cells = []
-        self.row = [[] for _ in range(9)]
-        self.col = [[] for _ in range(9)]
-        self.box = [[] for _ in range(9)]
+        self.rows = [[] for _ in range(9)]
+        self.cols = [[] for _ in range(9)]
+        self.boxs = [[] for _ in range(9)]
         self.np = None
         self.checked = defaultdict(lambda: defaultdict(lambda: []))
         self._init(vals)
@@ -123,21 +123,21 @@ class Puzzle_Backend:
     def __getitem__(self, pos):
         res = None
         if isinstance(pos, int):
-            res = self.row[pos]
+            res = self.rows[pos]
         elif pos[0] == slice(None, None, None) and isinstance(pos[1], int):
-            res = self.col[pos[1]]
+            res = self.cols[pos[1]]
         elif isinstance(pos[0], int) and pos[1] == slice(None, None, None):
-            res = self.row[pos[0]]
+            res = self.rows[pos[0]]
         elif isinstance(pos, tuple):
-            res = self.row[pos[0]][pos[1]]
+            res = self.rows[pos[0]][pos[1]]
         return res
 
     def __iter__(self):
-        yield from self.row
+        yield from self.rows
 
     def __str__(self):
         pstr = ""
-        for r, row in enumerate(self.row):
+        for r, row in enumerate(self.rows):
             # Print horizontal seperators between boxes.
             if (r % 3) == 0:
                 pstr += "-------------------------------------------------------------------------------------------------\n"
@@ -167,9 +167,9 @@ class Puzzle_Backend:
             for c, val in enumerate(row):
                 cell = Cell(pos=(r, c), box=p2b((r, c)))
                 self.cells.append(cell)
-                self.row[r].append(cell)
-                self.col[c].append(cell)
-                self.box[cell.box].append(cell)
+                self.rows[r].append(cell)
+                self.cols[c].append(cell)
+                self.boxs[cell.box].append(cell)
 
         # Assign all values after initialization to make sure notes are discarded properly.
         for r, row in enumerate(arr):
@@ -218,15 +218,15 @@ class Puzzle_Backend:
                     self[pos[0]][pos[1]].notes.add(val)
 
     def del_notes_row(self, val, rnum):
-        for cell in self.row[rnum]:
+        for cell in self.rows[rnum]:
             cell.notes.discard(val)
 
     def del_notes_col(self, val, cnum):
-        for cell in self.col[cnum]:
+        for cell in self.cols[cnum]:
             cell.notes.discard(val)
 
     def del_notes_box(self, val, bnum):
-        for cell in self.box[bnum]:
+        for cell in self.boxs[bnum]:
             cell.notes.discard(val)
 
     def del_notes_cell(self, posns=[], vals=[], save_vals=[]):
@@ -241,15 +241,15 @@ class Puzzle_Backend:
 
     def copy(self, p):
         self.cells = p.cells
-        self.box = p.box
-        self.row = p.row
-        self.col = p.col
+        self.boxs = p.boxs
+        self.rows = p.rows
+        self.cols = p.cols
         self.np = p.np
         self.unsolved = p.unsolved
         self.checked = p.checked
 
     def clear(self):
-        for row in self.row:
+        for row in self.rows:
             for cell in row:
                 cell.val = 0
                 cell.notes = set(range(1, 10))
