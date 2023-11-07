@@ -411,28 +411,24 @@ class Puzzle:
         self.gui.root.mainloop()
 
     def load(self, vals):
-        """_summary_
+        """Wrapper for Puzzle.Backend.load()
 
         Args:
-            vals (_type_): _description_
+            vals (list[int]): Values to load in for each cell in the puzzle.
         """
         self.puz.load(vals)
 
-    def update_gui(self, pos, val):
-        self.gui.update(pos, val)
-
-    def update_puz(self, pos, val):
-        return
-
     def puz2gui(self):
+        """Synchronizes the values in the gui to the values in the puzzle."""
         for row in self.puz:
             for cell in row:
                 if cell.val != 0:
-                    self.update_gui(cell.pos, cell.val)
+                    self.gui.update(cell.pos, cell.val)
                 else:
-                    self.update_gui(cell.pos, "")
+                    self.gui.update(cell.pos, "")
 
     def gui2puz(self):
+        """Synchronizes the values in the puzzle to the values in the gui."""
         self.puz.clear()
         for rnum, row in enumerate(self.gui.cells):
             for cnum, gui_cell in enumerate(row):
@@ -442,15 +438,18 @@ class Puzzle:
                     self.puz[rnum, cnum] = val
 
     def solve(self):
+        """Insures the back-end values match the front-end, solves the puzzle, then matches the gui to the back-end values."""
         self.gui2puz()
         self.puz.solve()
         self.puz2gui()
 
     def clear(self):
+        """Clears the gui and the back-end."""
         self.puz.clear()
         self.puz2gui()
 
     def load_image(self):
+        """Attempts to load values into the puzzle via an image."""
         nums = proc()
         self.puz.clear()
         self.puz.load(nums, force=True)
