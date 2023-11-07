@@ -107,7 +107,8 @@ def find_naked_general(p, n):
     Example:
     While checking row 3 with num=2, cells at positions (3,3) and (3,7) are found to have only the 2 notes {4,8}; Notes 4 and 8 will be removed from all other cells in row 3. If the cell at position (3,0) had the notes {1,3,4,7,8}, afterwards it would have the notes {1,3,7}.
     """
-    assert n > 0
+
+    assert n > 0 and n < 9
     if n == 1:
         diffs = ""
         for cell in p.cells:
@@ -164,7 +165,8 @@ def find_hidden_general(p, n):
     Example:
     While checking row 3 with num=2, cells only at positions (3,3) and (3,7) are found to have more than 2 notes, {1,3,4,6,8} and {2,4,7,8}, but share notes 4 and 8; Notes 4 and 8 will be removed from all other notes in the cells of row 3. All notes exluding 4 and 8, for the cells at positions (3,3) and (3,7), will be removed.
     """
-    assert n > 0
+    
+    assert n > 0 and n < 9
     if n == 1:
         diffs = ""
         for cell in p.cells:

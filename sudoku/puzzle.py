@@ -58,6 +58,7 @@ class Cell:
         Returns:
             str: The value of the cell.
         """
+
         return f"{self.val}"
 
     def __repr__(self):
@@ -66,6 +67,7 @@ class Cell:
         Returns:
             str: The cell position.
         """
+
         return f"Cell@{self.pos}"
 
     def __int__(self):
@@ -74,12 +76,13 @@ class Cell:
         Returns:
             int: The cell value as an int.
         """
+
         return self.val
 
 
 class Puzzle_Backend:
     """
-    A class to hold the information for each cell in a Sudoku puzzle.
+    A class to hold the information for the backend of the puzzle which contains all the puzzle information and interacts with the solver.
 
     ...
 
@@ -107,6 +110,7 @@ class Puzzle_Backend:
         Args:
             vals (list[int]): The values to initialize each cell of the puzzle with. Defaults to None.
         """
+
         self.unsolved = 81
         self.cells = []
         self.rows = [[] for _ in range(9)]
@@ -123,6 +127,7 @@ class Puzzle_Backend:
             pos (tuple): The position of the cell to be modified.
             new_val (int): The new value for the cell.
         """
+
         cell = self.__getitem__(pos)
         self._update_cell(cell, new_val)
 
@@ -135,6 +140,7 @@ class Puzzle_Backend:
         Returns:
             Cell: The cell at position pos.
         """
+
         res = None
         if isinstance(pos, int):
             res = self.rows[pos]
@@ -152,6 +158,7 @@ class Puzzle_Backend:
         Yields:
             list[Cell]: A row from the puzzle.
         """
+
         yield from self.rows
 
     def __str__(self):
@@ -160,6 +167,7 @@ class Puzzle_Backend:
         Returns:
             str: String that displays the puzzle in terms of its cell's values
         """
+
         pstr = ""
         for r, row in enumerate(self.rows):
             # Print horizontal seperators between boxes.
@@ -180,6 +188,7 @@ class Puzzle_Backend:
         Args:
             vals (list[int]): Values for each cell in the puzzle.
         """
+
         if vals:
             arr = np.reshape(np.array(vals), (9, 9))
         else:
@@ -217,6 +226,7 @@ class Puzzle_Backend:
             Exception: Thrown if the cell is updated with the value 0.
             Exception: Thrown if updating the cell with new_val causes the puzzle to become invalid.
         """
+
         new_val = int(new_val)
         if new_val == 0:
             raise Exception("Can not assign a value of 0.")
@@ -241,6 +251,7 @@ class Puzzle_Backend:
             boxs (list, int): The box numbers that should have the values removed. Defaults to [].
             save (list, int): Positions of cells that should be saved from having vals removed from their notes. Defaults to [].
         """
+
         if isinstance(vals, int):
             vals = [vals]
         if isinstance(rows, int):
@@ -272,6 +283,7 @@ class Puzzle_Backend:
             val (int): The value to remove from the row notes.
             rnum (int): The row to remove the value from.
         """
+
         for cell in self.rows[rnum]:
             cell.notes.discard(val)
 
@@ -282,6 +294,7 @@ class Puzzle_Backend:
             val (int): The value to remove from the column notes.
             cnum (int): The column to remove the value from.
         """
+
         for cell in self.cols[cnum]:
             cell.notes.discard(val)
 
@@ -292,6 +305,7 @@ class Puzzle_Backend:
             val (int): The value to remove from the box notes.
             bnum (int): The box to remove the value from.
         """
+
         for cell in self.boxs[bnum]:
             cell.notes.discard(val)
 
@@ -303,6 +317,7 @@ class Puzzle_Backend:
             posns (list): The positions of the cells to have the values removed. Defaults to [].
             save_vals (list): Values that should remain after deleting the specified values, vals. Defaults to [].
         """
+
         for pos in posns:
             if not vals:
                 self[pos].notes = set()
@@ -318,6 +333,7 @@ class Puzzle_Backend:
         Args:
             p (Puzzle_Backend): The puzzle to copy attributes from.
         """
+
         self.unsolved = p.unsolved
         self.cells = p.cells
         self.rows = p.rows
@@ -328,6 +344,7 @@ class Puzzle_Backend:
 
     def clear(self):
         """Clears the puzzle of all values and resets all notes."""
+
         for row in self.rows:
             for cell in row:
                 cell.val = 0
@@ -342,6 +359,7 @@ class Puzzle_Backend:
         Args:
             vals (list[int]): The values for each cell in the puzzle.
         """
+
         self.clear()
         self._init(vals)
 
@@ -368,35 +386,36 @@ class Puzzle_Backend:
 
 class Puzzle:
     """
-    A class to hold the information for each cell in a Sudoku puzzle.
+    This class holds the information for both the front and back end of the Sudoku puzzle. It acts as the means of communication from one to the other.
 
     ...
 
     Attributes
     ----------
-    unsolved : int
-        number of cells unsolved in the puzzle.
-    cells : list[Cell]
-        list of all the cells in the puzzle
-    rows : list[list[Cell]]
-        list of all the rows of cells in the puzzle
-    cols : list[list[Cell]]
-        list of all the columns of cells in the puzzle
-    boxs : list[list[Cell]]
-        list of all the boxes of cells in the puzzle
-    np : numpy.ndarray
-        a 2D numpy array with the values of the cells in the puzzle
-    checked : defaultdict(lambda: defaultdict(lambda: []))
-        a dictionary containing all of the previously checked clues to prevent double checking
+    puz : Puzzle_Backend
+        The back-end of the puzzle which stores all of its information and is able to communicate with the solver.
+    gui : Puzzle_Frontend
+        The front-end for the puzzle that the user interacts with.
     """
 
     def __init__(self, vals=None, gui=True):
+        """Contructs an object that allows communication from the front-end to the back-end of the puzzle.
+
+        Args:
+            vals (list[int]): Values to initialize the puzzle with. Defaults to None.
+            gui (bool): If the gui should be enabled or not. Defaults to True.
+        """
         self.puz = Puzzle_Backend(vals)
         self.gui = Puzzle_Frontend(parent=self) if gui else None
         self.puz2gui()
         self.gui.root.mainloop()
 
     def load(self, vals):
+        """_summary_
+
+        Args:
+            vals (_type_): _description_
+        """
         self.puz.load(vals)
 
     def update_gui(self, pos, val):
@@ -431,8 +450,8 @@ class Puzzle:
         self.puz.clear()
         self.puz2gui()
 
-    # def load_image(self):
-    #     nums = proc()
-    #     self.puz.clear()
-    #     self.puz.load(nums, force=True)
-    #     self.puz2gui()
+    def load_image(self):
+        nums = proc()
+        self.puz.clear()
+        self.puz.load(nums, force=True)
+        self.puz2gui()
