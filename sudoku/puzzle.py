@@ -86,19 +86,19 @@ class Puzzle_Backend:
     Attributes
     ----------
     unsolved : int
-        the value of the cell if the cell is solved (0 if unsolved)
+        number of cells unsolved in the puzzle.
     cells : list[Cell]
-        the possible values for the cell
-    row : int
-        the number for the box in which the cell is located (0-8)
-    col : str
-        the row and column in the puzzle the cell is located at
-    box : int
-        the number for the box in which the cell is located (0-8)
-    np : int
-        the number for the box in which the cell is located (0-8)
-    checked : int
-        the number for the box in which the cell is located (0-8)
+        list of all the cells in the puzzle
+    rows : list[list[Cell]]
+        list of all the rows of cells in the puzzle
+    cols : list[list[Cell]]
+        list of all the columns of cells in the puzzle
+    boxs : list[list[Cell]]
+        list of all the boxes of cells in the puzzle
+    np : numpy.ndarray
+        a 2D numpy array with the values of the cells in the puzzle
+    checked : defaultdict(lambda: defaultdict(lambda: []))
+        a dictionary containing all of the previously checked clues to prevent double checking
     """
 
     def __init__(self, vals=None):
@@ -117,10 +117,24 @@ class Puzzle_Backend:
         self._init(vals)
 
     def __setitem__(self, pos, new_val):
+        """Gets the cell at position pos, and changes its value to new_val.
+
+        Args:
+            pos (tuple): The position of the cell to be modified.
+            new_val (int): The new value for the cell.
+        """
         cell = self.__getitem__(pos)
         self._update_cell(cell, new_val)
 
     def __getitem__(self, pos):
+        """Returns the cell for a given position.
+
+        Args:
+            pos (tuple): The position of the desired cell.
+
+        Returns:
+            Cell: The cell at position pos.
+        """
         res = None
         if isinstance(pos, int):
             res = self.rows[pos]
@@ -133,9 +147,19 @@ class Puzzle_Backend:
         return res
 
     def __iter__(self):
+        """Puzzle_Backend iterates from self.rows.
+
+        Yields:
+            list[Cell]: A row from the puzzle.
+        """
         yield from self.rows
 
     def __str__(self):
+        """Returns string that displays the puzzle.
+
+        Returns:
+            str: String that displays the puzzle in terms of its cell's values
+        """
         pstr = ""
         for r, row in enumerate(self.rows):
             # Print horizontal seperators between boxes.
@@ -151,6 +175,11 @@ class Puzzle_Backend:
         return pstr
 
     def _init(self, vals):
+        """Initializes unsolved, rows, cols, boxs, and np according to the input vals.
+
+        Args:
+            vals (list[int]): Values for each cell in the puzzle.
+        """
         if vals:
             arr = np.reshape(np.array(vals), (9, 9))
         else:
@@ -178,6 +207,16 @@ class Puzzle_Backend:
                     self[r, c] = val
 
     def _update_cell(self, cell, new_val):
+        """Updates all necessary attributes, when a cell is solved, to keep synchronicity.
+
+        Args:
+            cell (Cell): The cell that is solved.
+            new_val (int): The value of the solved cell.
+
+        Raises:
+            Exception: Thrown if the cell is updated with the value 0.
+            Exception: Thrown if updating the cell with new_val causes the puzzle to become invalid.
+        """
         new_val = int(new_val)
         if new_val == 0:
             raise Exception("Can not assign a value of 0.")
@@ -193,6 +232,15 @@ class Puzzle_Backend:
         self.del_notes(val=new_val, row=r, col=c, box=cell.box, save=cell.pos)
 
     def del_notes(self, val=[], row=[], col=[], box=[], save=[]):
+        """_summary_
+
+        Args:
+            val (list, optional): _description_. Defaults to [].
+            row (list, optional): _description_. Defaults to [].
+            col (list, optional): _description_. Defaults to [].
+            box (list, optional): _description_. Defaults to [].
+            save (list, optional): _description_. Defaults to [].
+        """
         if isinstance(val, int):
             val = [val]
         if isinstance(row, int):
