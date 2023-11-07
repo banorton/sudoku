@@ -128,7 +128,7 @@ def find_naked_general(p, n):
                 posns = tuple(checks[notes])
                 if (posns not in p.checked[n]) and (len(posns) == n):
                     p.checked[n][posns].extend(notes)
-                    p.del_notes(val=notes, row=rnum, save=posns)
+                    p.del_notes(vals=notes, rows=rnum, save=posns)
                     diffs += f"del notes: row {rnum}, vals {notes}, save {posns}\n"
     # Col
     for cnum, col in enumerate(p.cols):
@@ -140,7 +140,7 @@ def find_naked_general(p, n):
                 posns = tuple(checks[notes])
                 if (posns not in p.checked[n]) and (len(posns) == n):
                     p.checked[n][posns].extend(notes)
-                    p.del_notes(val=notes, col=cnum, save=posns)
+                    p.del_notes(vals=notes, cols=cnum, save=posns)
                     diffs += f"del notes: col {cnum}, vals {notes}, save {posns}\n"
     # Box
     for bnum, box in enumerate(p.boxs):
@@ -152,7 +152,7 @@ def find_naked_general(p, n):
                 posns = tuple(checks[notes])
                 if (posns not in p.checked[n]) and (len(posns) == n):
                     p.checked[n][posns].extend(notes)
-                    p.del_notes(val=notes, box=bnum, save=posns)
+                    p.del_notes(vals=notes, boxs=bnum, save=posns)
                     diffs += f"del notes: box {bnum}, vals {notes}, save {posns}\n"
     return "" if not diffs else f"\nNAKED n={n}\n" + diffs + "\n"
 
@@ -207,7 +207,7 @@ def find_hidden_general(p, n):
                 if value in posns and len(posns[value]) == n:
                     if not (value in p.checked[n]):
                         p.checked[n][value].append(key)
-                        p.del_notes(val=posns[value], row=[rnum], save=value)
+                        p.del_notes(vals=posns[value], rows=[rnum], save=value)
                         diffs1 += f"del notes: row {rnum}, vals {posns[value]}, save {value}\n"
                         p.del_notes_cell(posns=value, save_vals=posns[value])
                         diffs2 += f"del notes: cells {value}, save {posns[value]}\n"
@@ -220,7 +220,7 @@ def find_hidden_general(p, n):
                 if value in posns and len(posns[value]) == n:
                     if not (value in p.checked[n]):
                         p.checked[n][value].append(key)
-                        p.del_notes(val=posns[value], col=[cnum], save=value)
+                        p.del_notes(vals=posns[value], cols=[cnum], save=value)
                         diffs1 += f"del notes: col {cnum}, vals {posns[value]}, save {value}\n"
                         p.del_notes_cell(posns=value, save_vals=posns[value])
                         diffs2 += f"del notes: cells {value}, save {posns[value]}\n"
@@ -235,7 +235,7 @@ def find_hidden_general(p, n):
                         if bnum == 1 and n == 2:
                             print()
                         p.checked[n][value].append(key)
-                        p.del_notes(val=posns[value], box=[bnum], save=value)
+                        p.del_notes(vals=posns[value], boxs=[bnum], save=value)
                         diffs1 += f"del notes: box {bnum}, vals {posns[value]}, save {value}\n"
                         p.del_notes_cell(posns=value, save_vals=posns[value])
                         diffs2 += f"del notes: cells {value}, save {posns[value]}\n"
@@ -257,11 +257,11 @@ def find_inline(p):
                 inlinehash1 = (tuple(value), v00, v10, "inline")
                 inlinehash2 = (tuple(value), v01, v11, "inline")
                 if v00 == v10 and inlinehash1 not in p.checked:
-                    p.del_notes(val=[key], row=[v00], save=value)
+                    p.del_notes(vals=[key], rows=[v00], save=value)
                     diffs += f"del notes: row {v00}, val {[key]}, save {value}\n"
                     p.checked[inlinehash1] = True
                 elif v01 == v11 and inlinehash2 not in p.checked:
-                    p.del_notes(val=[key], col=[v01], save=value)
+                    p.del_notes(vals=[key], cols=[v01], save=value)
                     diffs += f"del notes: col {v01}, val {[key]}, save {value}\n"
                     p.checked[inlinehash2] = True
             if len(value) == 3:
@@ -270,7 +270,7 @@ def find_inline(p):
                 inlinehash1 = (tuple(value), v00, v10, v20, "inline")
                 inlinehash2 = (tuple(value), v01, v11, v21, "inline")
                 if v00 == v10 == v20 and inlinehash1 not in p.checked:
-                    p.del_notes(val=[key], row=[v00], save=value)
+                    p.del_notes(vals=[key], rows=[v00], save=value)
                     diffs += f"del notes: row {v00}, val {[key]}, save {value}\n"
                     p.checked[inlinehash1] = True
                 elif v01 == v11 == v21 and inlinehash2 not in p.checked:

@@ -229,37 +229,28 @@ class Puzzle_Backend:
             print(self.np, end="\n\n")
             raise Exception(reason)
         r, c = cell.pos
-        self.del_notes(val=new_val, row=r, col=c, box=cell.box, save=cell.pos)
+        self.del_notes(vals=new_val, rows=r, cols=c, boxs=cell.box, save=cell.pos)
 
-    def del_notes(self, val=[], row=[], col=[], box=[], save=[]):
-        """_summary_
-
-        Args:
-            val (list, optional): _description_. Defaults to [].
-            row (list, optional): _description_. Defaults to [].
-            col (list, optional): _description_. Defaults to [].
-            box (list, optional): _description_. Defaults to [].
-            save (list, optional): _description_. Defaults to [].
-        """
-        if isinstance(val, int):
-            val = [val]
-        if isinstance(row, int):
-            row = [row]
-        if isinstance(col, int):
-            col = [col]
-        if isinstance(box, int):
-            box = [box]
+    def del_notes(self, vals=[], rows=[], cols=[], boxs=[], save=[]):
+        if isinstance(vals, int):
+            vals = [vals]
+        if isinstance(rows, int):
+            rows = [rows]
+        if isinstance(cols, int):
+            cols = [cols]
+        if isinstance(boxs, int):
+            boxs = [boxs]
         if isinstance(save, tuple):
             if isinstance(save[0], int):
                 save = [save]
             elif isinstance(save[0], tuple):
                 save = list(save)
-        for val in val:
-            for rnum in row:
+        for val in vals:
+            for rnum in rows:
                 self.del_notes_row(val, rnum)
-            for cnum in col:
+            for cnum in cols:
                 self.del_notes_col(val, cnum)
-            for bnum in box:
+            for bnum in boxs:
                 self.del_notes_box(val, bnum)
             if save:
                 for pos in save:
