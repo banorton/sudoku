@@ -269,15 +269,6 @@ def find_hidden_general(p, n):
 
 
 def find_inline(p):
-    """_summary_
-
-    Args:
-        p (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
-
     diffs = ""
     for box in p.boxs:
         counts = defaultdict(lambda: [])
