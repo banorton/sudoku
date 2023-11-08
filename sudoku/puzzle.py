@@ -379,6 +379,8 @@ class Puzzle_Backend:
                 break
         if clue_ct < 17:
             raise Exception("Puzzle does not have a unique solution.")
+
+        # Attempt to solve the puzzle using basic solving algorithms. If solving halts, use the Nishio method.
         solved = std_solve(self)
         if not solved:
             nishio(self)
@@ -405,6 +407,7 @@ class Puzzle:
             vals (list[int]): Values to initialize the puzzle with. Defaults to None.
             gui (bool): If the gui should be enabled or not. Defaults to True.
         """
+
         self.puz = Puzzle_Backend(vals)
         self.gui = Puzzle_Frontend(parent=self) if gui else None
         self.puz2gui()
@@ -416,10 +419,12 @@ class Puzzle:
         Args:
             vals (list[int]): Values to load in for each cell in the puzzle.
         """
+
         self.puz.load(vals)
 
     def puz2gui(self):
         """Synchronizes the values in the gui to the values in the puzzle."""
+
         for row in self.puz:
             for cell in row:
                 if cell.val != 0:
@@ -429,6 +434,7 @@ class Puzzle:
 
     def gui2puz(self):
         """Synchronizes the values in the puzzle to the values in the gui."""
+
         self.puz.clear()
         for rnum, row in enumerate(self.gui.cells):
             for cnum, gui_cell in enumerate(row):
@@ -439,17 +445,20 @@ class Puzzle:
 
     def solve(self):
         """Insures the back-end values match the front-end, solves the puzzle, then matches the gui to the back-end values."""
+
         self.gui2puz()
         self.puz.solve()
         self.puz2gui()
 
     def clear(self):
-        """Clears the gui and the back-end."""
+        """Clears the gui and the back-end cells."""
+
         self.puz.clear()
         self.puz2gui()
 
     def load_image(self):
         """Attempts to load values into the puzzle via an image."""
+
         nums = proc()
         self.puz.clear()
         self.puz.load(nums, force=True)

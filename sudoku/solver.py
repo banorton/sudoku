@@ -1,9 +1,17 @@
-import numpy as np
 from collections import defaultdict
 from copy import deepcopy as dcopy
 
 
 def is_valid(p):
+    """_summary_
+
+    Args:
+        p (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
     # Count the occurrence of values in every row, column, and box.
     rcounts = [[0 for _ in range(10)] for _ in range(9)]
     ccounts = [[0 for _ in range(10)] for _ in range(9)]
@@ -31,6 +39,15 @@ def is_valid(p):
 
 
 def std_solve(p):
+    """_summary_
+
+    Args:
+        p (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
     if not is_valid(p):
         print("Not a valid puzzle.")
 
@@ -66,6 +83,13 @@ def std_solve(p):
 
 
 def nishio(p, n=2):
+    """_summary_
+
+    Args:
+        p (_type_): _description_
+        n (int, optional): _description_. Defaults to 2.
+    """
+
     # Check if all of the cells have been solved.
     if not p.unsolved:
         return
@@ -165,7 +189,7 @@ def find_hidden_general(p, n):
     Example:
     While checking row 3 with num=2, cells only at positions (3,3) and (3,7) are found to have more than 2 notes, {1,3,4,6,8} and {2,4,7,8}, but share notes 4 and 8; Notes 4 and 8 will be removed from all other notes in the cells of row 3. All notes exluding 4 and 8, for the cells at positions (3,3) and (3,7), will be removed.
     """
-    
+
     assert n > 0 and n < 9
     if n == 1:
         diffs = ""
@@ -245,6 +269,15 @@ def find_hidden_general(p, n):
 
 
 def find_inline(p):
+    """_summary_
+
+    Args:
+        p (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
     diffs = ""
     for box in p.boxs:
         counts = defaultdict(lambda: [])
