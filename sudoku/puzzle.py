@@ -459,7 +459,7 @@ class Puzzle:
     def load_image(self):
         """Attempts to load values into the puzzle via an image."""
 
-        nums = proc()
-        self.puz.clear()
-        self.puz.load(nums, force=True)
-        self.puz2gui()
+        # nums = proc()
+        # self.puz.clear()
+        # self.puz.load(nums, force=True)
+        # self.puz2gui()
