@@ -3,13 +3,13 @@ from copy import deepcopy as dcopy
 
 
 def is_valid(p):
-    """_summary_
+    """Checks if the current state of the puzzle is valid (i.e. no duplicate values in any row, column, or box).
 
     Args:
-        p (_type_): _description_
+        p (Puzzle_Backend): The puzzle that will be checked.
 
     Returns:
-        _type_: _description_
+        bool: True if valid, False if invalid.
     """
 
     # Count the occurrence of values in every row, column, and box.
@@ -39,13 +39,13 @@ def is_valid(p):
 
 
 def std_solve(p):
-    """_summary_
+    """This is the "standard solve". It looks for increasingly difficult clues and solves the puzzle in a similiar manner to a human.
 
     Args:
-        p (_type_): _description_
+        p (Puzzle_Backend): The puzzle to be solved.
 
     Returns:
-        _type_: _description_
+        bool: True if the puzzle is solved, False if the puzzle is not solved
     """
 
     if not is_valid(p):
@@ -57,15 +57,15 @@ def std_solve(p):
         diffs = ""
         header = f"______________________________________________________________________"
         # Look for increasingly more difficult clues to find.
-        diffs += find_naked_general(p, 1)
-        diffs += find_hidden_general(p, 1)
+        diffs += find_naked_clues(p, 1)
+        diffs += find_hidden_clues(p, 1)
         diffs += find_inline(p)
-        diffs += find_naked_general(p, 2)
-        diffs += find_hidden_general(p, 2)
-        diffs += find_naked_general(p, 3)
-        diffs += find_hidden_general(p, 3)
-        diffs += find_naked_general(p, 4)
-        diffs += find_hidden_general(p, 4)
+        diffs += find_naked_clues(p, 2)
+        diffs += find_hidden_clues(p, 2)
+        diffs += find_naked_clues(p, 3)
+        diffs += find_hidden_clues(p, 3)
+        diffs += find_naked_clues(p, 4)
+        diffs += find_hidden_clues(p, 4)
         footer = f"cells unsolved: {p.unsolved}\n______________________________________________________________________\n"
         if not diffs:
             ct += 1
@@ -83,11 +83,11 @@ def std_solve(p):
 
 
 def nishio(p, n=2):
-    """_summary_
+    """Implementation of the Nishio method for solving a Sudoku puzzle. Essentially guess and check. If a naked clue is found with n values, branch.
 
     Args:
-        p (_type_): _description_
-        n (int, optional): _description_. Defaults to 2.
+        p (Puzzle_Backend): The puzzle to be solved.
+        n (int): Branch number. Defaults to 2.
     """
 
     # Check if all of the cells have been solved.
@@ -124,12 +124,15 @@ def nishio(p, n=2):
                     nishio(p)
 
 
-def find_naked_general(p, n):
-    """
-    For a given number (num), if exactly num amount of cells, in a row or column or box, contain exactly num amount of notes and those notes are equal, eliminate those values from the notes of the other cells in the respective row, column, or box.
+def find_naked_clues(p, n):
+    """Eliminates values from the notes of the other cells in a given row, column, or box if exactly n amount of cells in a row, column or box contain exactly n amount of notes and those notes are equal.
 
-    Example:
-    While checking row 3 with num=2, cells at positions (3,3) and (3,7) are found to have only the 2 notes {4,8}; Notes 4 and 8 will be removed from all other cells in row 3. If the cell at position (3,0) had the notes {1,3,4,7,8}, afterwards it would have the notes {1,3,7}.
+    Args:
+        p (Puzzle_Backend): Puzzle in which clues will be looked for.
+        n (int): Amount of cells and clues to look for.
+
+    Returns:
+        str: A string containing the description of the changes that were made to the puzzle.
     """
 
     assert n > 0 and n < 9
@@ -182,12 +185,15 @@ def find_naked_general(p, n):
     return "" if not diffs else f"\nNAKED n={n}\n" + diffs + "\n"
 
 
-def find_hidden_general(p, n):
-    """
-    For a given number (num), if exactly num amount of cells, in a row or column or box, contain more than num amount of notes but share the same num amount of notes, eliminate all but the shared notes in those cells. Eliminate the shared notes from the notes in other cells in the respective row, column, or box.
+def find_hidden_clues(p, n):
+    """If exactly n amount of cells in a row, column, or box contain more than n amount of notes but share the same n amount of notes, eliminate all but the shared notes in those cells. Also, eliminate the shared notes from the notes in other cells in the given row, column, or box.
 
-    Example:
-    While checking row 3 with num=2, cells only at positions (3,3) and (3,7) are found to have more than 2 notes, {1,3,4,6,8} and {2,4,7,8}, but share notes 4 and 8; Notes 4 and 8 will be removed from all other notes in the cells of row 3. All notes exluding 4 and 8, for the cells at positions (3,3) and (3,7), will be removed.
+    Args:
+        p (Puzzle_Backend): Puzzle in which clues will be looked for.
+        n (int): Amount of cells and clues to look for.
+
+    Returns:
+        str: A string containing the description of the changes that were made to the puzzle.
     """
 
     assert n > 0 and n < 9
@@ -269,6 +275,15 @@ def find_hidden_general(p, n):
 
 
 def find_inline(p):
+    """Finds cells that share a note that are in the same box and row or box and column. Then the function eliminates that value from the rest of the respective row or column.
+
+    Args:
+        p (Puzzle_Backend): Puzzle in which clues will be looked for.
+
+    Returns:
+        str: A string containing the description of the changes that were made to the puzzle.
+    """
+
     diffs = ""
     for box in p.boxs:
         counts = defaultdict(lambda: [])
