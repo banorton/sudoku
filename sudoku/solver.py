@@ -125,14 +125,14 @@ def nishio(p, n=2):
 
 
 def find_naked_clues(p, n):
-    """_summary_
+    """Eliminates values from the notes of the other cells in a given row, column, or box if exactly n amount of cells in a row, column or box contain exactly n amount of notes and those notes are equal.
 
     Args:
-        p (_type_): _description_
-        n (_type_): _description_
+        p (Puzzle_Backend): Puzzle in which clues will be looked for.
+        n (int): Amount of cells and clues to look for.
 
     Returns:
-        _type_: _description_
+        str: A string containing the description of the changes that were made to the puzzle.
     """
 
     assert n > 0 and n < 9
@@ -186,11 +186,14 @@ def find_naked_clues(p, n):
 
 
 def find_hidden_clues(p, n):
-    """
-    For a given number (num), if exactly num amount of cells, in a row or column or box, contain more than num amount of notes but share the same num amount of notes, eliminate all but the shared notes in those cells. Eliminate the shared notes from the notes in other cells in the respective row, column, or box.
+    """If exactly n amount of cells in a row, column, or box contain more than n amount of notes but share the same n amount of notes, eliminate all but the shared notes in those cells. Also, eliminate the shared notes from the notes in other cells in the given row, column, or box.
 
-    Example:
-    While checking row 3 with num=2, cells only at positions (3,3) and (3,7) are found to have more than 2 notes, {1,3,4,6,8} and {2,4,7,8}, but share notes 4 and 8; Notes 4 and 8 will be removed from all other notes in the cells of row 3. All notes exluding 4 and 8, for the cells at positions (3,3) and (3,7), will be removed.
+    Args:
+        p (Puzzle_Backend): Puzzle in which clues will be looked for.
+        n (int): Amount of cells and clues to look for.
+
+    Returns:
+        str: A string containing the description of the changes that were made to the puzzle.
     """
 
     assert n > 0 and n < 9
@@ -272,13 +275,13 @@ def find_hidden_clues(p, n):
 
 
 def find_inline(p):
-    """_summary_
+    """Finds cells that share a note that are in the same box and row or box and column. Then the function eliminates that value from the rest of the respective row or column.
 
     Args:
-        p (_type_): _description_
+        p (Puzzle_Backend): Puzzle in which clues will be looked for.
 
     Returns:
-        _type_: _description_
+        str: A string containing the description of the changes that were made to the puzzle.
     """
 
     diffs = ""
