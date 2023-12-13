@@ -174,6 +174,7 @@ class Puzzle_Backend:
             if (r % 3) == 0:
                 pstr += "-------------------------------------------------------------------------------------------------\n"
                 pstr += "|\t\t\t\t|\t\t\t\t|\t\t\t\t|\n"
+
             # Print row with vertical seperators between boxes.
             for i in range(3):
                 pstr += f"|\t{row[i * 3]}\t{row[i * 3 + 1]}\t{row[i * 3 + 2]}\t"
@@ -195,6 +196,7 @@ class Puzzle_Backend:
             arr = np.zeros((9, 9), int)
         self.np = arr
 
+        # Calculates the box number from the puzzle position.
         def p2b(ppos, bdimo=(3, 3), bdimi=(3, 3)):
             brow = ceil((ppos[0] + 1) / bdimi[0]) - 1
             bcol = ceil((ppos[1] + 1) / bdimi[1]) - 1

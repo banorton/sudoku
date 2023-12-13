@@ -34,3 +34,5 @@ def testPuzzleBackendSetItemChangesCellCorrectly(empty_puzzle):
     assert id(empty_puzzle.rows[0][0]) == id(empty_puzzle[0, 0])
     assert empty_puzzle.rows[0][0].val == empty_puzzle[0, 0].val
     assert empty_puzzle.rows[0][0].notes == empty_puzzle[0, 0].notes
+
+def 
